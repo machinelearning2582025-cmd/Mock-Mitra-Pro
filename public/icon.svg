@@ -1,0 +1,135 @@
+<svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Deep glossy black squircle background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#141822" />
+      <stop offset="50%" stopColor="#080A0F" />
+      <stop offset="100%" stopColor="#000000" />
+    </linearGradient>
+
+    <!-- Shiny blue neon graduation cap gradient -->
+    <linearGradient id="capGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stopColor="#60C1FF" />
+      <stop offset="60%" stopColor="#2563EB" />
+      <stop offset="100%" stopColor="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Left side of the 'M' gradient -->
+    <linearGradient id="mLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#93C5FD" />
+      <stop offset="50%" stopColor="#3B82F6" />
+      <stop offset="100%" stopColor="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Right side of the 'M' gradient -->
+    <linearGradient id="mRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#60A5FA" />
+      <stop offset="100%" stopColor="#1E40AF" />
+    </linearGradient>
+
+    <!-- Tassel gradient -->
+    <linearGradient id="tasselGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#93E2FF" />
+      <stop offset="100%" stopColor="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Dynamic ambient cyan-blue drop shadow glow -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="15" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- SQUIRCLE BACKGROUND - Eliminating all outer white parts by building a pristine squircle with built-in dark outline -->
+  <rect 
+    x="16" 
+    y="16" 
+    width="480" 
+    height="480" 
+    rx="124" 
+    fill="url(#bgGrad)" 
+    stroke="#1E293B" 
+    strokeWidth="6"
+  />
+
+  <!-- INNER GLOW GRAPHIC CONTAINER -->
+  <g filter="url(#neonGlow)">
+    <!-- GRADUATION CAP (MORTARBOARD TOP) -->
+    <!-- Diamond shape -->
+    <path 
+      d="M256 120 L448 186 L256 252 L64 186 Z" 
+      fill="url(#capGrad)" 
+      stroke="#3B82F6" 
+      strokeWidth="4"
+      strokeLinejoin="round"
+    />
+    <!-- Shadow below the diamond rim -->
+    <path 
+      d="M256 252 L448 186 M256 252 L64 186" 
+      stroke="#1F2937" 
+      strokeWidth="6" 
+      opacity="0.3" 
+    />
+
+    <!-- CAP SKULL BAND (Semi-oval shape under the cap) -->
+    <path 
+      d="M174 216 C174 216 210 248 256 248 C302 248 338 216 338 216 L338 245 C338 268 302 284 256 284 C210 284 174 268 174 245 Z" 
+      fill="#1D4ED8" 
+      opacity="0.9"
+    />
+
+    <!-- THE INTEGRATED 'M' SYMBOL -->
+    <!-- Left vertical facet -->
+    <path 
+      d="M150 216 L174 216 L174 368 L150 368 Z" 
+      fill="url(#mLeftGrad)" 
+    />
+    <!-- Right vertical facet -->
+    <path 
+      d="M338 216 L362 216 L362 368 L338 368 Z" 
+      fill="url(#mRightGrad)" 
+    />
+
+    <!-- Stylized M-Wings sweeping downwards and joining in the center -->
+    <!-- Left wing curve -->
+    <path 
+      d="M174 216 L256 312 L202 368 L174 316 Z" 
+      fill="url(#mLeftGrad)" 
+    />
+    <!-- Right wing curve -->
+    <path 
+      d="M338 216 L256 312 L310 368 L338 316 Z" 
+      fill="url(#mRightGrad)" 
+    />
+    
+    <!-- Bottom smooth leg curves -->
+    <path 
+      d="M150 368 H190 V360 C190 330 220 312 256 312 C292 312 322 330 322 360 V368 H362 M256 312 V368" 
+      stroke="url(#capGrad)" 
+      strokeWidth="16" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+    />
+
+    <!-- TASSEL -->
+    <!-- Tassel line hanging from the cap center to the right -->
+    <path 
+      d="M268 186 C310 190 410 205 410 270" 
+      stroke="url(#tasselGrad)" 
+      strokeWidth="8" 
+      strokeLinecap="round" 
+    />
+    <!-- Decorative tassel cord connector -->
+    <circle cx="410" cy="270" r="8" fill="#93E2FF" />
+    <!-- The brush part of the tassel -->
+    <path 
+      d="M410 270 C402 300 398 320 405 348 C410 348 420 348 425 342 C422 320 418 300 410 270 Z" 
+      fill="url(#capGrad)" 
+      stroke="#93E2FF" 
+      strokeWidth="2" 
+    />
+  </g>
+</svg>
