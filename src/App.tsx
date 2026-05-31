@@ -67,8 +67,28 @@ export default function App() {
   // Automatically keep appState in sync with onboarding status
   useEffect(() => {
     if (authLoading) return;
-    setAppState(profile.onboarded ? 'dashboard' : 'landing');
-  }, [profile.onboarded, authLoading]);
+    
+    if (profile.onboarded) {
+      // If they are on a starting page, move them to dashboard
+      if (appState === 'landing' || appState === 'onboarding') {
+        setAppState('dashboard');
+      }
+    } else {
+      // Not onboarded yet
+      if (firebaseUser) {
+        // If logged in via Google but not onboarded, we must ask for details
+        if (appState !== 'onboarding') {
+          setAppState('onboarding');
+        }
+      } else {
+        // Guest mode (not logged in, not onboarded)
+        // Only set back to landing if they are not currently in the process of onboarding, testing, or reviewing a result
+        if (appState !== 'onboarding' && appState !== 'testing' && appState !== 'results') {
+          setAppState('landing');
+        }
+      }
+    }
+  }, [profile.onboarded, authLoading, firebaseUser, appState]);
 
   const [currentTestQuestions, setCurrentTestQuestions] = useState<Question[]>([]);
   const [lastResults, setLastResults] = useState<any>(null);
@@ -309,7 +329,10 @@ export default function App() {
         )}
         
         {appState === 'onboarding' && (
-          <ExamSelector onComplete={handleOnboardingComplete} />
+          <ExamSelector 
+            onComplete={handleOnboardingComplete} 
+            initialName={profile.name}
+          />
         )}
 
         {appState === 'dashboard' && (

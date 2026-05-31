@@ -5,11 +5,12 @@ import Logo from './Logo';
 
 interface ExamSelectorProps {
   onComplete: (name: string, exam: string, language: string, customDetails?: string) => void;
+  initialName?: string;
 }
 
-export default function ExamSelector({ onComplete }: ExamSelectorProps) {
+export default function ExamSelector({ onComplete, initialName = '' }: ExamSelectorProps) {
   const [step, setStep] = useState(1);
-  const [name, setName] = useState('');
+  const [name, setName] = useState(initialName);
   const [selectedExam, setSelectedExam] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('Hinglish');
   const [customDetails, setCustomDetails] = useState('');
