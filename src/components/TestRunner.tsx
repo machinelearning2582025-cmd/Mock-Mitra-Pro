@@ -71,7 +71,7 @@ export default function TestRunner({ questions, onComplete }: TestRunnerProps) {
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12">
+    <div className="w-full px-4 sm:px-6 py-6 sm:py-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 min-h-[600px]">
         
         {/* Main Content Area */}

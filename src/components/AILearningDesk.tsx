@@ -167,7 +167,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
   ];
 
   return (
-    <div id="ai-personalised-hub" className="border border-brand/15 bg-gradient-to-b from-[#11131c] to-[#0A0C10] rounded-2xl overflow-hidden shadow-[0_4px_25px_rgba(37,99,235,0.1)] my-4 p-3 sm:p-5">
+    <div id="ai-personalised-hub" className="border border-brand/15 bg-gradient-to-b from-[#11131c] to-[#0A0C10] rounded-2xl overflow-hidden shadow-[0_4px_25px_rgba(37,99,235,0.1)] my-4 p-4 sm:p-6">
       {/* Top Header with Tab Control */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-4 mb-4">
         <div className="flex items-center justify-between sm:justify-start">
@@ -193,7 +193,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
         </div>
       </div>
 
-      <div className="w-full flex flex-col min-h-[360px] bg-white/[0.005] border border-white/5 rounded-2xl relative overflow-hidden">
+      <div className="w-full flex flex-col min-h-[360px] relative">
         
         <AnimatePresence mode="wait">
           {activeTab === 'strategy' ? (
@@ -203,12 +203,12 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="flex flex-col h-full justify-between p-3.5 sm:p-5"
+              className="flex flex-col h-full justify-between py-2"
             >
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3.5 mb-3.5">
                   <div>
-                    <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-xs sm:text-xs.5 font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5 font-sans">
                       <Target className="w-3.5 h-3.5 text-brand" /> Dynamic Milestones
                     </h3>
                     {profile.aiMentorPlan?.lastStructuredDate && (
@@ -232,18 +232,18 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                 </div>
 
                 {profile.aiMentorPlan ? (
-                  <div className="space-y-3.5">
+                  <div className="space-y-3.5 w-full">
                     {/* Milestones Section */}
-                    <div>
-                      <h4 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                    <div className="w-full">
+                      <h4 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
                         Personal Study Milestones:
                       </h4>
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
                         {profile.aiMentorPlan.milestones.map((milestone, idx) => (
                           <div 
                             key={idx}
                             onClick={() => handleToggleMilestone(idx)}
-                            className={`flex items-start gap-2.5 p-2.5 sm:p-3 bg-white/[0.01] border hover:bg-white/[0.03] hover:border-white/10 rounded-xl cursor-pointer transition-all ${milestone.completed ? 'border-brand/20 bg-brand/5' : 'border-white/5'}`}
+                            className={`flex items-start gap-2.5 p-3.5 bg-white/[0.01] border hover:bg-white/[0.03] hover:border-white/10 rounded-xl cursor-pointer transition-all ${milestone.completed ? 'border-brand/20 bg-brand/5' : 'border-white/5'}`}
                           >
                             <div className="shrink-0 mt-0.5">
                               {milestone.completed ? (
@@ -266,7 +266,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                   <div className="text-center py-8 px-4">
                     <Sparkles className="w-8 h-8 text-brand mx-auto mb-2 animate-bounce" />
                     <h4 className="text-xs sm:text-sm font-black text-slate-300 mb-1">Roadmap Program Available</h4>
-                    <p className="text-[10px] sm:text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 max-w-xl mx-auto leading-relaxed">
                       Aapke current strong/weak topics ke according AI ek tailored preparation strategy formulate karega. Upar 'Program Roadmap' button par click karein!
                     </p>
                   </div>
@@ -275,12 +275,12 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
 
               {/* Instant Custom Goal Drill Launcher */}
               {profile.aiMentorPlan && (
-                <div className="mt-4 border-t border-white/5 pt-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <div>
+                <div className="mt-6 border-t border-white/5 pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                  <div className="flex-1">
                     <h5 className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5 justify-center sm:justify-start">
                       <Sparkles className="w-3.5 h-3.5 text-brand" /> Launch Personalised Practice Drill
                     </h5>
-                    <p className="text-[9px] sm:text-[10px] text-slate-500 text-center sm:text-left mt-0.5">
+                    <p className="text-[9px] sm:text-[10px] text-slate-500 text-center sm:text-left mt-0.5 leading-normal">
                       AI instant practice test generate karega jo directly aapke target weak topics ko focus karega.
                     </p>
                   </div>
@@ -290,7 +290,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                       const weakTopicsStr = profile.performance.weakTopics.join(', ') || 'core chapters';
                       onStartCustomDrill(`Please generate a practice test focused on active recall of: ${weakTopicsStr}. Align difficulty with standard mock benchmarks for ${profile.exam}.`);
                     }}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-brand to-indigo-600 hover:from-[#3a75e0] hover:to-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/25 transition-all active:scale-95 cursor-pointer shrink-0 text-center font-bold"
+                    className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-brand to-indigo-600 hover:from-[#3a75e0] hover:to-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/25 transition-all active:scale-95 cursor-pointer shrink-0 text-center font-bold"
                   >
                     Practice Weak areas ⚡
                   </button>
@@ -304,7 +304,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="flex flex-col h-full justify-between p-3.5 sm:p-5"
+              className="flex flex-col h-full justify-between py-2"
             >
               {/* Chat Display Box - Raised min-height for beautiful viewport scrolling in mobile */}
               <div 
@@ -314,7 +314,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                 {chatMessages.map((msg, idx) => (
                   <div 
                     key={idx}
-                    className={`flex gap-2 max-w-[96%] sm:max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+                    className={`flex gap-3 max-w-full sm:max-w-[95%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
                   >
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full shrink-0 flex items-center justify-center border h-max ${msg.role === 'user' ? 'bg-indigo-600/15 border-indigo-500/20 text-indigo-400' : 'bg-brand/10 border-brand/20 text-brand-light'}`}>
                       {msg.role === 'user' ? <User className="w-3 h-3 sm:w-3.5 h-3.5" /> : <Sparkles className="w-3 h-3 sm:w-3.5 h-3.5" />}
@@ -327,7 +327,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                 ))}
 
                 {isChatting && (
-                  <div className="flex gap-2 max-w-[96%] sm:max-w-[85%]">
+                  <div className="flex gap-2 max-w-full sm:max-w-[95%]">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full shrink-0 bg-brand/10 border border-brand/20 text-brand-light flex items-center justify-center h-max animate-pulse">
                       <Sparkles className="w-3 h-3 sm:w-3.5 h-3.5 animate-spin" />
                     </div>

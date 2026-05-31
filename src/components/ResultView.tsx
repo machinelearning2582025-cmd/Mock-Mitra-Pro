@@ -41,7 +41,7 @@ export default function ResultView({
   const percentage = Math.round((score / total) * 100);
   
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="w-full px-4 sm:px-6 py-12">
       {/* Top action header */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
         <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2">

@@ -58,7 +58,7 @@ export default function Dashboard({
     .sort((a, b) => (a.status === 'Critical Gap' ? -1 : 1));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-12">
+    <div className="w-full px-4 sm:px-6 py-4 sm:py-12">
       <header className="mb-6 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
