@@ -166,33 +166,33 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
   ];
 
   return (
-    <div id="ai-personalised-hub" className="border border-brand/20 bg-gradient-to-b from-[#11131c] via-[#0E1017] to-[#0A0C10] rounded-3xl overflow-hidden shadow-[0_4px_30px_rgba(37,99,235,0.15)] my-6 p-4 sm:p-6 lg:p-8">
+    <div id="ai-personalised-hub" className="border border-brand/15 bg-gradient-to-b from-[#11131c] to-[#0A0C10] rounded-2xl overflow-hidden shadow-[0_4px_25px_rgba(37,99,235,0.1)] my-4 p-3 sm:p-5">
       {/* Top Header with Tab Control */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5 mb-6">
-        <div>
-          <span className="flex items-center gap-1 text-[8px] sm:text-[10px] bg-brand/10 border border-brand/20 text-brand px-2.5 py-1 rounded-full uppercase tracking-widest font-black leading-none mb-1 w-max">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-4 mb-4">
+        <div className="flex items-center justify-between sm:justify-start">
+          <span className="flex items-center gap-1.5 text-[9px] sm:text-[10px] bg-brand/10 border border-brand/20 text-brand px-2.5 py-1 rounded-full uppercase tracking-wider font-extrabold leading-none">
             <Sparkles className="w-3 h-3 text-brand" /> Personalised AI Learning
           </span>
         </div>
 
         {/* Tab switchers */}
-        <div className="flex bg-slate-900/80 p-0.5 sm:p-1 border border-white/5 rounded-xl shrink-0 w-full sm:w-auto">
+        <div className="flex bg-slate-900/90 p-0.5 border border-white/5 rounded-xl shrink-0 w-full sm:w-auto">
           <button 
             onClick={() => setActiveTab('strategy')}
             className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] sm:text-xs font-bold leading-none rounded-lg transition-all cursor-pointer ${activeTab === 'strategy' ? 'bg-brand text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
           >
-            <Target className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Strategy & Milestones
+            <Target className="w-3.5 h-3.5" /> Strategy & Milestones
           </button>
           <button 
             onClick={() => setActiveTab('mentor')}
             className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] sm:text-xs font-bold leading-none rounded-lg transition-all cursor-pointer ${activeTab === 'mentor' ? 'bg-brand text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
           >
-            <MessageSquare className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> Chat with Mitra AI
+            <MessageSquare className="w-3.5 h-3.5" /> Chat with Mitra AI
           </button>
         </div>
       </div>
 
-      <div className="w-full flex flex-col min-h-[380px] bg-white/[0.01] border border-white/5 rounded-2xl relative overflow-hidden">
+      <div className="w-full flex flex-col min-h-[360px] bg-white/[0.005] border border-white/5 rounded-2xl relative overflow-hidden">
         
         <AnimatePresence mode="wait">
           {activeTab === 'strategy' ? (
@@ -202,16 +202,16 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="flex flex-col h-full justify-between p-4 sm:p-5"
+              className="flex flex-col h-full justify-between p-3.5 sm:p-5"
             >
               <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3.5 mb-3.5">
                   <div>
-                    <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                      <Target className="w-4 h-4 text-brand" /> Dynamic Milestones & Strategy Board
+                    <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <Target className="w-3.5 h-3.5 text-brand" /> Dynamic Milestones
                     </h3>
                     {profile.aiMentorPlan?.lastStructuredDate && (
-                      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+                      <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
                         Last Updated: {profile.aiMentorPlan.lastStructuredDate}
                       </p>
                     )}
@@ -231,20 +231,10 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                 </div>
 
                 {profile.aiMentorPlan ? (
-                  <div className="space-y-4">
-                    {/* Summary Section */}
-                    <div className="p-3 sm:p-4 bg-brand/5 border border-brand/10 rounded-xl">
-                      <h4 className="text-[11px] sm:text-xs font-black text-brand-light uppercase tracking-wider mb-1">
-                        AI Executive Recommendation:
-                      </h4>
-                      <p className="text-slate-300 text-[11px] sm:text-xs leading-relaxed font-sans">
-                        {profile.aiMentorPlan.summary}
-                      </p>
-                    </div>
-
+                  <div className="space-y-3.5">
                     {/* Milestones Section */}
                     <div>
-                      <h4 className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                      <h4 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                         Personal Study Milestones:
                       </h4>
                       <div className="space-y-2">
@@ -272,10 +262,10 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-10 px-4">
+                  <div className="text-center py-8 px-4">
                     <Sparkles className="w-8 h-8 text-brand mx-auto mb-2 animate-bounce" />
                     <h4 className="text-xs sm:text-sm font-black text-slate-300 mb-1">Roadmap Program Available</h4>
-                    <p className="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
                       Aapke current strong/weak topics ke according AI ek tailored preparation strategy formulate karega. Upar 'Program Roadmap' button par click karein!
                     </p>
                   </div>
@@ -284,7 +274,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
 
               {/* Instant Custom Goal Drill Launcher */}
               {profile.aiMentorPlan && (
-                <div className="mt-5 border-t border-white/5 pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="mt-4 border-t border-white/5 pt-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                   <div>
                     <h5 className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5 justify-center sm:justify-start">
                       <Sparkles className="w-3.5 h-3.5 text-brand" /> Launch Personalised Practice Drill
@@ -299,7 +289,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                       const weakTopicsStr = profile.performance.weakTopics.join(', ') || 'core chapters';
                       onStartCustomDrill(`Please generate a practice test focused on active recall of: ${weakTopicsStr}. Align difficulty with standard mock benchmarks for ${profile.exam}.`);
                     }}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-brand to-indigo-600 hover:from-[#3a75e0] hover:to-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/25 transition-all active:scale-95 cursor-pointer shrink-0 text-center"
+                    className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-brand to-indigo-600 hover:from-[#3a75e0] hover:to-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/25 transition-all active:scale-95 cursor-pointer shrink-0 text-center font-bold"
                   >
                     Practice Weak areas ⚡
                   </button>
@@ -313,17 +303,17 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="flex flex-col h-full justify-between p-4 sm:p-5"
+              className="flex flex-col h-full justify-between p-3.5 sm:p-5"
             >
-              {/* Chat Display Box */}
+              {/* Chat Display Box - Raised min-height for beautiful viewport scrolling in mobile */}
               <div 
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto max-h-[250px] sm:max-h-[310px] pr-2 mb-4 space-y-3.5 custom-scrollbar"
+                className="flex-1 overflow-y-auto min-h-[280px] h-[280px] sm:min-h-[350px] sm:h-[350px] pr-1.5 mb-3.5 space-y-3.5 custom-scrollbar"
               >
                 {chatMessages.map((msg, idx) => (
                   <div 
                     key={idx}
-                    className={`flex gap-2.5 max-w-[94%] sm:max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+                    className={`flex gap-2 max-w-[96%] sm:max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
                   >
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full shrink-0 flex items-center justify-center border h-max ${msg.role === 'user' ? 'bg-indigo-600/15 border-indigo-500/20 text-indigo-400' : 'bg-brand/10 border-brand/20 text-brand-light'}`}>
                       {msg.role === 'user' ? <User className="w-3 h-3 sm:w-3.5 h-3.5" /> : <Sparkles className="w-3 h-3 sm:w-3.5 h-3.5" />}
@@ -353,7 +343,7 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                 ))}
 
                 {isChatting && (
-                  <div className="flex gap-2.5 max-w-[94%] sm:max-w-[85%]">
+                  <div className="flex gap-2 max-w-[96%] sm:max-w-[85%]">
                     <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full shrink-0 bg-brand/10 border border-brand/20 text-brand-light flex items-center justify-center h-max animate-pulse">
                       <Sparkles className="w-3 h-3 sm:w-3.5 h-3.5 animate-spin" />
                     </div>
@@ -364,9 +354,9 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                 )}
               </div>
 
-              {/* Suggestions Quick Chips */}
+              {/* Suggestions Chips */}
               {chatMessages.length <= 2 && !isChatting && (
-                <div className="mb-3.5">
+                <div className="mb-3">
                   <span className="block text-[8px] font-black uppercase text-slate-500 tracking-wider mb-1.5">Tap quick starters:</span>
                   <div className="flex flex-wrap gap-1.5">
                     {promptSuggestions.map((prompt, i) => (
@@ -383,11 +373,11 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
               )}
 
               {/* Chat input form panel */}
-              <div className="flex gap-2 border-t border-white/5 pt-3.5">
+              <div className="flex gap-2 border-t border-white/5 pt-3">
                 <input
                   type="text"
                   className="flex-1 bg-slate-950/80 border border-slate-800 focus:border-brand/40 text-slate-200 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-brand/30 leading-none"
-                  placeholder="Ask study plan questions, math tricks, weak areas tips..."
+                  placeholder="Ask study plan, Vedic math tricks, weak topics..."
                   value={chatIn}
                   onChange={(e) => setChatIn(e.target.value)}
                   onKeyDown={(e) => {

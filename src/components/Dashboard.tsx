@@ -163,6 +163,15 @@ export default function Dashboard({
           </div>
         </div>
 
+        {/* Personalized AI Learning Desk */}
+        <div className="md:col-span-12">
+          <AILearningDesk 
+            profile={profile}
+            onUpdateProfile={onUpdateProfile}
+            onStartCustomDrill={onStartCustomDrill}
+          />
+        </div>
+
         {/* Section: Priority Matrix */}
         <div className="md:col-span-6 lg:col-span-4 lg:row-span-2 bento-card border-warning/10 p-5 sm:p-6 flex flex-col">
           <div className="flex items-center justify-between mb-6 sm:mb-8">
@@ -241,15 +250,6 @@ export default function Dashboard({
             ))}
             {history.length === 0 && <div className="col-span-2 text-center py-12 text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] opacity-40">No records found • System idle</div>}
           </div>
-        </div>
-
-        {/* Personalized AI Learning Desk */}
-        <div className="md:col-span-12">
-          <AILearningDesk 
-            profile={profile}
-            onUpdateProfile={onUpdateProfile}
-            onStartCustomDrill={onStartCustomDrill}
-          />
         </div>
 
         {/* AI Expert Insight Card */}
