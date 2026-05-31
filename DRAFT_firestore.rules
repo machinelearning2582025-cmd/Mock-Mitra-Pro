@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Catch-all safety gate (Master deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global primitive functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity validation helper to prevent update gaps / shadow attributes
+    function isValidUserProfile(data) {
+      return data.name is string 
+        && data.name.size() <= 100
+        && data.email is string 
+        && data.email.size() <= 150
+        && data.onboarded is bool
+        && (data.exam == null || (data.exam is string && data.exam.size() <= 100))
+        && (data.language == null || (data.language is string && data.language.size() <= 50))
+        && (data.customExamDetails == null || (data.customExamDetails is string && data.customExamDetails.size() <= 1000));
+    }
+
+    // Test result verification helper
+    function isValidTestResult(data) {
+      return data.date is string
+        && data.score is number
+        && data.total is number
+        && data.timeSpent is number
+        && data.subject is string;
+    }
+
+    // Users collection match block
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      
+      allow create: if isOwner(userId) 
+        && isValidUserProfile(incoming())
+        && (incoming().email == request.auth.token.email || incoming().email == null);
+
+      allow update: if isOwner(userId)
+        && isValidUserProfile(incoming())
+        && (incoming().email == existing().email) // Immutable email field
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'exam', 'language', 'customExamDetails', 'onboarded', 
+            'streak', 'strongTopics', 'weakTopics', 'knowledgeProfile', 
+            'lastAiAnalysis', 'updatedAt'
+          ])
+        );
+
+      allow delete: if false; // Users cannot be deleted from Client SDK
+
+      // Subcollection for isolated test results
+      match /tests/{testId} {
+        allow get, list: if isOwner(userId);
+        
+        allow create: if isOwner(userId) 
+          && isValidId(testId)
+          && isValidTestResult(incoming());
+
+        allow update, delete: if false; // Test history is immutable once taken to prevent cheating or data loss
+      }
+    }
+  }
+}

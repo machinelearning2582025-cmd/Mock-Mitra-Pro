@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+
+  --color-brand: #2563eb;
+  --color-brand-light: #3b82f6;
+  --color-success: #10b981;
+  --color-danger: #f43f5e;
+  --color-warning: #f59e0b;
+  --color-bg-dark: #0A0C10;
+  --color-card-dark: #12151C;
+  --color-border-dark: #1e293b;
+
+  --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  --shadow-brand: 0 20px 40px -15px rgba(37, 99, 235, 0.3);
+}
+
+@layer base {
+  body {
+    @apply text-slate-200 font-sans;
+    background-color: #0A0C10;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight text-white;
+  }
+}
+
+.bento-card {
+  @apply border border-slate-800 rounded-3xl p-6 transition-all duration-300 shadow-premium;
+  background-color: #12151C;
+}
+
+.bento-card-hover {
+  @apply hover:border-brand/50 hover:shadow-brand hover:-translate-y-1;
+}
+
+.glass {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+}
+
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+/* Custom Hide Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

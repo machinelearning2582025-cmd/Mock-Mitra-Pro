@@ -1,0 +1,108 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Stores core details and aggregated performance of Mock Mitra users.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The user's real or preferred name from Google sign-in."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address linked to the user's Google account."
+        },
+        "exam": {
+          "type": "string",
+          "description": "The competitive exam the user is preparing for (e.g., SSC CGL, UPSC)."
+        },
+        "language": {
+          "type": "string",
+          "description": "The language selection (e.g., Hinglish, English, Hindi)."
+        },
+        "customExamDetails": {
+          "type": "string",
+          "description": "Additional custom curriculum descriptions if preparing for other exams."
+        },
+        "onboarded": {
+          "type": "boolean",
+          "description": "Indicates whether the user has finalized initial onboarding selection."
+        },
+        "streak": {
+          "type": "integer",
+          "description": "Current active daily practice streak count."
+        },
+        "strongTopics": {
+          "type": "array",
+          "description": "Topics where the user has achieved high accuracy."
+        },
+        "weakTopics": {
+          "type": "array",
+          "description": "Topics requiring urgent focus or drill practice."
+        },
+        "knowledgeProfile": {
+          "type": "object",
+          "description": "Key-value pair of topic accuracy trends (0 - 100)."
+        },
+        "lastAiAnalysis": {
+          "type": "object",
+          "description": "The last AI analysis results cached for performance view."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the last update."
+        }
+      },
+      "required": ["name", "email", "onboarded"]
+    },
+    "TestResult": {
+      "title": "TestResult",
+      "description": "Stores individual mock test results completed by the user.",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The exact date and time the mock test was taken."
+        },
+        "score": {
+          "type": "number",
+          "description": "Total correct answers scored by the user."
+        },
+        "total": {
+          "type": "number",
+          "description": "Total number of questions in the test."
+        },
+        "timeSpent": {
+          "type": "number",
+          "description": "Time spent during the test in seconds."
+        },
+        "subject": {
+          "type": "string",
+          "description": "The exam subject name or full mock indicator."
+        },
+        "topicPerformance": {
+          "type": "object",
+          "description": "Breakdown of accuracy and count for each topic in the test."
+        },
+        "questions": {
+          "type": "array",
+          "description": "The questions loaded during the active test session."
+        }
+      },
+      "required": ["date", "score", "total", "timeSpent", "subject"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Root collection for user registration and aggregate analytics."
+    },
+    "users/{userId}/tests/{testId}": {
+      "schema": "TestResult",
+      "description": "Subcollection to isolate individual test histories dynamically and prevent document sizing overflow."
+    }
+  }
+}
