@@ -93,6 +93,7 @@ export default function App() {
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+  const [isPWAInstalled, setIsPWAInstalled] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
@@ -102,15 +103,28 @@ export default function App() {
 
     const handleAppInstalled = () => {
       setDeferredPrompt(null);
+      setIsPWAInstalled(true);
+      localStorage.setItem('pwa_installed_mockmitra', 'true');
       console.log('App successfully installed!');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    const checkIsPWA = () => {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         (window.navigator as any).standalone === true ||
+                         localStorage.getItem('pwa_installed_mockmitra') === 'true';
+      setIsPWAInstalled(standalone);
+    };
+    checkIsPWA();
+
+    const interval = setInterval(checkIsPWA, 2000);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      clearInterval(interval);
     };
   }, []);
 
@@ -387,6 +401,7 @@ export default function App() {
             onStart={() => setAppState('onboarding')} 
             onStartGoogle={handleStartPractice}
             onInstallClick={handleInstallClick}
+            showInstallButton={!isPWAInstalled}
           />
         )}
         
@@ -406,6 +421,7 @@ export default function App() {
             onInstallClick={handleInstallClick}
             onUpdateProfile={updateProfile}
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
+            showInstallButton={!isPWAInstalled}
           />
         )}
 

@@ -5,9 +5,10 @@ interface HeroProps {
   onStart: () => void;
   onStartGoogle?: () => void;
   onInstallClick?: () => void;
+  showInstallButton?: boolean;
 }
 
-export default function Hero({ onStart, onStartGoogle, onInstallClick }: HeroProps) {
+export default function Hero({ onStart, onStartGoogle, onInstallClick, showInstallButton = true }: HeroProps) {
   return (
     <div className="relative overflow-hidden pt-8 sm:pt-12 pb-16 sm:pb-24 px-4 sm:px-6 bg-[#0A0C10]">
       <div className="max-w-7xl mx-auto">
@@ -87,23 +88,25 @@ export default function Hero({ onStart, onStartGoogle, onInstallClick }: HeroPro
           ))}
 
           {/* PWA App Install Banner Section */}
-          <div className="md:col-span-12 mt-6 p-6 bento-card bg-gradient-to-r from-[#12151C]/80 to-brand/5 border-brand/20 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand shrink-0">
-                <Smartphone className="w-5 h-5 flex animate-pulse" />
+          {showInstallButton && (
+            <div className="md:col-span-12 mt-6 p-6 bento-card bg-gradient-to-r from-[#12151C]/80 to-brand/5 border-brand/20 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand shrink-0">
+                  <Smartphone className="w-5 h-5 flex animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wider">Install MockMitra as App 📱</h4>
+                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">Apne mobile par shortcut aur super-fast experience ke liye direct Add to Home Screen/Install karein!</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-sm font-black text-white uppercase tracking-wider">Install MockMitra as App 📱</h4>
-                <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">Apne mobile par shortcut aur super-fast experience ke liye direct Add to Home Screen/Install karein!</p>
-              </div>
+              <button
+                onClick={onInstallClick}
+                className="w-full md:w-auto px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95 cursor-pointer text-center"
+              >
+                Install App ⚡
+              </button>
             </div>
-            <button
-              onClick={onInstallClick}
-              className="w-full md:w-auto px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95 cursor-pointer text-center"
-            >
-              Install App ⚡
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </div>
