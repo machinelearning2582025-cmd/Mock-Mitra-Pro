@@ -1,135 +1,148 @@
 <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Deep glossy black squircle background gradient -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#141822" />
-      <stop offset="50%" stopColor="#080A0F" />
-      <stop offset="100%" stopColor="#000000" />
+    <!-- Background Gradient: Ultra deep space indigo blue -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#181926" />
+      <stop offset="40%" stop-color="#0E0F17" />
+      <stop offset="100%" stop-color="#050508" />
     </linearGradient>
 
-    <!-- Shiny blue neon graduation cap gradient -->
-    <linearGradient id="capGrad" x1="50%" y1="0%" x2="50%" y2="100%">
-      <stop offset="0%" stopColor="#60C1FF" />
-      <stop offset="60%" stopColor="#2563EB" />
-      <stop offset="100%" stopColor="#1D4ED8" />
+    <!-- Glassy/Glow outline gradient -->
+    <linearGradient id="glowBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="50%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#8B5CF6" />
     </linearGradient>
 
-    <!-- Left side of the 'M' gradient -->
-    <linearGradient id="mLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#93C5FD" />
-      <stop offset="50%" stopColor="#3B82F6" />
-      <stop offset="100%" stopColor="#1D4ED8" />
+    <!-- Porcelain White Top Cap Gradient -->
+    <linearGradient id="whiteCap" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E2E8F0" />
     </linearGradient>
 
-    <!-- Right side of the 'M' gradient -->
-    <linearGradient id="mRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#60A5FA" />
-      <stop offset="100%" stopColor="#1E40AF" />
+    <!-- Cyber Cyan Logo Gradient -->
+    <linearGradient id="cyberCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F2FE" />
+      <stop offset="100%" stop-color="#3B82F6" />
     </linearGradient>
 
-    <!-- Tassel gradient -->
-    <linearGradient id="tasselGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#93E2FF" />
-      <stop offset="100%" stopColor="#1D4ED8" />
+    <!-- Golden Rich Tassel Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE259" />
+      <stop offset="100%" stop-color="#FFA751" />
+    </linearGradient>
+    
+    <!-- Secondary White Sheen for glossy overlay -->
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
     </linearGradient>
 
-    <!-- Dynamic ambient cyan-blue drop shadow glow -->
-    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="15" result="blur" />
-      <feMerge>
-        <feMergeNode in="blur" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
+    <!-- Drop Shadow for the central elements to make them look 3D layered -->
+    <filter id="shadow3D" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000000" flood-opacity="0.6" />
     </filter>
   </defs>
 
-  <!-- SQUIRCLE BACKGROUND - Eliminating all outer white parts by building a pristine squircle with built-in dark outline -->
+  <!-- PWA SQUARE/SQUIRCLE BACKGROUND -->
+  <!-- Solid plate with a perfect inner gradient + border to avoid fading into wallpaper -->
   <rect 
-    x="16" 
-    y="16" 
-    width="480" 
-    height="480" 
+    x="12" 
+    y="12" 
+    width="488" 
+    height="488" 
     rx="124" 
     fill="url(#bgGrad)" 
-    stroke="#1E293B" 
-    strokeWidth="6"
+    stroke="url(#glowBorder)" 
+    stroke-width="12"
   />
 
-  <!-- INNER GLOW GRAPHIC CONTAINER -->
-  <g filter="url(#neonGlow)">
-    <!-- GRADUATION CAP (MORTARBOARD TOP) -->
-    <!-- Diamond shape -->
+  <!-- Subtle diagonal glass sheen overlay on background -->
+  <path 
+    d="M12 12 L500 12 L12 500 Z" 
+    fill="url(#sheen)" 
+    opacity="0.1" 
+    pointer-events="none"
+  />
+
+  <!-- CENTRAL EMBLEM CONTAINER with Premium Drop Shadow -->
+  <g filter="url(#shadow3D)">
+    
+    <!-- Outer Cyan Aura / Halo behind the logo elements for premium depth -->
+    <circle cx="256" cy="256" r="130" fill="#00F2FE" opacity="0.08" filter="blur(20px)" />
+
+    <!-- 1. THE GEOMETRIC "M" PILLARS (Beautifully structured and thick for extreme tiny-size contrast) -->
+    <!-- Left side column of M -->
+    <rect x="144" y="244" width="38" height="130" rx="10" fill="url(#cyberCyan)" />
+    <!-- Right side column of M -->
+    <rect x="330" y="244" width="38" height="130" rx="10" fill="url(#cyberCyan)" />
+    
+    <!-- The central dipping "V" component of the M -->
     <path 
-      d="M256 120 L448 186 L256 252 L64 186 Z" 
-      fill="url(#capGrad)" 
-      stroke="#3B82F6" 
-      strokeWidth="4"
-      strokeLinejoin="round"
-    />
-    <!-- Shadow below the diamond rim -->
-    <path 
-      d="M256 252 L448 186 M256 252 L64 186" 
-      stroke="#1F2937" 
-      strokeWidth="6" 
-      opacity="0.3" 
+      d="M164 244 L256 324 L348 244 L348 290 L256 372 L164 290 Z" 
+      fill="url(#cyberCyan)" 
     />
 
-    <!-- CAP SKULL BAND (Semi-oval shape under the cap) -->
+    <!-- Secondary Accent Shadow element within the M connector -->
     <path 
-      d="M174 216 C174 216 210 248 256 248 C302 248 338 216 338 216 L338 245 C338 268 302 284 256 284 C210 284 174 268 174 245 Z" 
-      fill="#1D4ED8" 
-      opacity="0.9"
+      d="M182 244 L256 308 L330 244 L310 244 L256 288 L202 244 Z" 
+      fill="#1E3B8A" 
+      opacity="0.4"
     />
 
-    <!-- THE INTEGRATED 'M' SYMBOL -->
-    <!-- Left vertical facet -->
+    <!-- 2. CAP BASE / SKULL CAP (Grounded on the M support) -->
     <path 
-      d="M150 216 L174 216 L174 368 L150 368 Z" 
-      fill="url(#mLeftGrad)" 
-    />
-    <!-- Right vertical facet -->
-    <path 
-      d="M338 216 L362 216 L362 368 L338 368 Z" 
-      fill="url(#mRightGrad)" 
+      d="M165 208 Q256 242 347 208 L347 236 Q256 272 165 236 Z" 
+      fill="#2563EB" 
+      stroke="#1E40AF" 
+      stroke-width="1.5"
     />
 
-    <!-- Stylized M-Wings sweeping downwards and joining in the center -->
-    <!-- Left wing curve -->
-    <path 
-      d="M174 216 L256 312 L202 368 L174 316 Z" 
-      fill="url(#mLeftGrad)" 
+    <!-- 3. GRADUATION CAP DIAMOND BOARD (Brilliant Pure Porcelain White - pops on ANY screen) -->
+    <!-- Top shadow base -->
+    <polygon 
+      points="256,92 436,157 256,222 76,157" 
+      fill="#0B0D13" 
+      opacity="0.5"
     />
-    <!-- Right wing curve -->
+    <!-- Real 3D offset porcelain board -->
+    <polygon 
+      points="256,84 436,149 256,214 76,149" 
+      fill="url(#whiteCap)" 
+      stroke="#FFFFFF" 
+      stroke-width="3.5"
+    />
+
+    <!-- Subtle elegant inner inset lines on white board -->
+    <polygon 
+      points="256,98 416,149 256,200 96,149" 
+      fill="none" 
+      stroke="#E2E8F0" 
+      stroke-width="2" 
+    />
+
+    <!-- 4. TASSEL DETAILS (Glowing Golden Accent) -->
     <path 
-      d="M338 216 L256 312 L310 368 L338 316 Z" 
-      fill="url(#mRightGrad)" 
+      d="M256 149 C324 152 388 180 388 248" 
+      fill="none" 
+      stroke="url(#goldGrad)" 
+      stroke-width="7" 
+      stroke-linecap="round" 
     />
     
-    <!-- Bottom smooth leg curves -->
+    <!-- Cap Button (Golden Center Pin) -->
+    <ellipse cx="256" cy="149" rx="14" ry="7" fill="url(#goldGrad)" stroke="#FFFFFF" stroke-width="1.5" />
+
+    <!-- Tassel Fringe Ring -->
+    <circle cx="388" cy="248" r="7" fill="#FFA751" />
+
+    <!-- Tassel Fringe Brush (gorgeous hanging design) -->
     <path 
-      d="M150 368 H190 V360 C190 330 220 312 256 312 C292 312 322 330 322 360 V368 H362 M256 312 V368" 
-      stroke="url(#capGrad)" 
-      strokeWidth="16" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+      d="M388 248 C381 278 376 295 383 325 C388 325 398 325 403 318 C399 295 395 278 388 248 Z" 
+      fill="url(#goldGrad)" 
+      stroke="#FFE259" 
+      stroke-width="1.5"
     />
 
-    <!-- TASSEL -->
-    <!-- Tassel line hanging from the cap center to the right -->
-    <path 
-      d="M268 186 C310 190 410 205 410 270" 
-      stroke="url(#tasselGrad)" 
-      strokeWidth="8" 
-      strokeLinecap="round" 
-    />
-    <!-- Decorative tassel cord connector -->
-    <circle cx="410" cy="270" r="8" fill="#93E2FF" />
-    <!-- The brush part of the tassel -->
-    <path 
-      d="M410 270 C402 300 398 320 405 348 C410 348 420 348 425 342 C422 320 418 300 410 270 Z" 
-      fill="url(#capGrad)" 
-      stroke="#93E2FF" 
-      strokeWidth="2" 
-    />
   </g>
 </svg>

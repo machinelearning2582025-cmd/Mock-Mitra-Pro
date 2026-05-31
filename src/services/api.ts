@@ -196,5 +196,137 @@ export async function generateQuestionsAPI(
   }
 }
 
+export async function generateLearningStrategyAPI(
+  profile: any,
+  language: string = "Hinglish"
+) {
+  if (!apiKey) return null;
+
+  const weakTopics = profile.performance.weakTopics.join(", ");
+  const strongTopics = profile.performance.strongTopics.join(", ");
+  const notes = profile.customStudyNotes || "None provided yet.";
+  const exam = profile.exam;
+
+  const prompt = `
+    Analyze the progress of student ${profile.name} who is preparing for ${exam}.
+    Weak topics: ${weakTopics || "None tracked yet"}.
+    Strong topics: ${strongTopics || "None tracked yet"}.
+    Personal study notes & focus areas saved by user: "${notes}".
+    Language preference: ${language}.
+
+    Using this, formulate a customized personalized learning strategy and 3-5 specific study milestones/goals (checkpoints).
+    Provide supportive, precise study directions in ${language}.
+  `;
+
+  const generate = async (modelName: string) => {
+    return await ai.models.generateContent({
+      model: modelName,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            summary: { type: Type.STRING },
+            suggestedAction: { type: Type.STRING },
+            milestones: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING }
+                },
+                required: ["title"]
+              }
+            }
+          },
+          required: ["summary", "suggestedAction", "milestones"]
+        }
+      }
+    });
+  };
+
+  try {
+    let response;
+    try {
+      response = await generate(MODEL_FLASH);
+    } catch (e) {
+      console.warn(`Primary model failed, falling back`);
+      response = await generate(MODEL_LITE);
+    }
+    const data = JSON.parse(response.text || "{}");
+    return {
+      summary: data.summary,
+      suggestedAction: data.suggestedAction,
+      milestones: (data.milestones || []).map((m: any) => ({
+        title: m.title,
+        completed: false
+      }))
+    };
+  } catch (err) {
+    console.error("Error generating strategy:", err);
+    return null;
+  }
+}
+
+export async function chatWithMitraAPI(
+  message: string,
+  history: { role: 'user' | 'model'; text: string }[],
+  profile: any,
+  language: string = "Hinglish"
+) {
+  if (!apiKey) return "Aapka API Key configure nahi hai settings me. Kripya use settings profile me provide karein.";
+
+  const systemInstruction = `
+    You are 'Mitra AI', a smart friendly exam coach and study mentor for ${profile.name} who is preparing for ${profile.exam}.
+    Keep their personal study notes and progress in mind:
+    - User's Custom Study Notes: "${profile.customStudyNotes || "None set yet"}"
+    - User's Weak Topics: ${profile.performance.weakTopics.join(", ") || "None tracked yet"}
+    - User's Strong Topics: ${profile.performance.strongTopics.join(", ") || "None tracked yet"}
+    
+    Current Goal/Focus: ${profile.aiMentorPlan?.suggestedAction || "General Practice"}
+    
+    Aapko student ko motivate karna hai, unke questions and doubts clarify karne hain, and direct action items provide karne hain.
+    Always reply in a friendly, supportive tone in ${profile.language || language}. If Hinglish, use a mixed Hindi/English style.
+    
+    If the user asks you to save a specific target, concept, or update their custom notes/goals, remind them that they can type/update it in the 'My Saved Study Context' desk or mention: "Done! Aap apne study notes space me save kar sakte hain so I always remember."
+    Keep responses clear, concise, and beautifully formatted using Markdown. Ensure you use bullet points and bold headers.
+  `;
+
+  const contents = history.map(h => ({
+    role: h.role,
+    parts: [{ text: h.text }]
+  }));
+  contents.push({
+    role: 'user',
+    parts: [{ text: message }]
+  });
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_FLASH,
+      contents,
+      config: {
+        systemInstruction
+      }
+    });
+    return response.text || "Sorry, I couldn't formulate a response. Support system is offline.";
+  } catch (err) {
+    console.error("Mitra AI Chat Error:", err);
+    try {
+      const fallbackResponse = await ai.models.generateContent({
+        model: MODEL_LITE,
+        contents,
+        config: {
+          systemInstruction
+        }
+      });
+      return fallbackResponse.text || "Support system busy.";
+    } catch (innerErr) {
+      return "Mitra AI abhi study breaks par hai (Network Error). Kripya thodi der baad try karein!";
+    }
+  }
+}
+
 
 

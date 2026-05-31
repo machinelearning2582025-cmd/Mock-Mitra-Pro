@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Target, TrendingUp, AlertTriangle, Calendar, ArrowRight, Zap, Sparkles, BookOpen } from 'lucide-react';
 import { UserProfile, Topic } from '../types';
 import { getExamConfig } from '../data/examsConfig';
+import AILearningDesk from './AILearningDesk';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -9,9 +10,19 @@ interface DashboardProps {
   onStartTopicTest: (topic: Topic) => void;
   onViewResult: (result: any) => void;
   onInstallClick?: () => void;
+  onUpdateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  onStartCustomDrill: (prompt: string) => void;
 }
 
-export default function Dashboard({ profile, onStartTest, onStartTopicTest, onViewResult, onInstallClick }: DashboardProps) {
+export default function Dashboard({ 
+  profile, 
+  onStartTest, 
+  onStartTopicTest, 
+  onViewResult, 
+  onInstallClick,
+  onUpdateProfile,
+  onStartCustomDrill
+}: DashboardProps) {
   const history = profile.performance.testHistory;
   const examConfig = getExamConfig(profile.exam);
   
@@ -230,6 +241,15 @@ export default function Dashboard({ profile, onStartTest, onStartTopicTest, onVi
             ))}
             {history.length === 0 && <div className="col-span-2 text-center py-12 text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] opacity-40">No records found • System idle</div>}
           </div>
+        </div>
+
+        {/* Personalized AI Learning Desk */}
+        <div className="md:col-span-12">
+          <AILearningDesk 
+            profile={profile}
+            onUpdateProfile={onUpdateProfile}
+            onStartCustomDrill={onStartCustomDrill}
+          />
         </div>
 
         {/* AI Expert Insight Card */}

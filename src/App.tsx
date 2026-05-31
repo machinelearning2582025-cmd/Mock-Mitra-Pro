@@ -342,6 +342,8 @@ export default function App() {
             onStartTopicTest={(topic) => startNewTest(undefined, [topic])}
             onViewResult={viewTestResult}
             onInstallClick={isInstalled ? undefined : handleInstallClick}
+            onUpdateProfile={updateProfile}
+            onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
           />
         )}
 

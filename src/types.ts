@@ -44,6 +44,19 @@ export interface UserProfile {
   customExamDetails?: string;
   onboarded: boolean;
   performance: UserPerformance;
+  learningGoals?: string[];
+  customStudyNotes?: string;
+  aiMentorPlan?: {
+    summary: string;
+    milestones: { title: string; completed: boolean }[];
+    suggestedAction: string;
+    lastStructuredDate?: string;
+  };
+  chatHistory?: {
+    role: 'user' | 'model';
+    text: string;
+    date: string;
+  }[];
 }
 
 export interface DrillFile {

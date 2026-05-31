@@ -114,6 +114,11 @@ async function mergeGuestWithCloudAndSave(
     guestProfile.performance?.lastAiAnalysis || rawCloud.lastAiAnalysis
   );
 
+  const mergedCustomNotes = rawCloud.customStudyNotes || guestProfile.customStudyNotes || '';
+  const mergedGoals = rawCloud.learningGoals || guestProfile.learningGoals || [];
+  const mergedPlan = rawCloud.aiMentorPlan || guestProfile.aiMentorPlan || null;
+  const mergedChatHistory = rawCloud.chatHistory || guestProfile.chatHistory || [];
+
   // Save the synchronized profile to cloud
   await saveUserProfileToFirestore(userObj.uid, {
     name: mergedName,
@@ -127,6 +132,10 @@ async function mergeGuestWithCloudAndSave(
     weakTopics: computedPerf.weakTopics,
     knowledgeProfile: computedPerf.kProfile,
     lastAiAnalysis: computedPerf.lastAiAnalysis || null,
+    customStudyNotes: mergedCustomNotes,
+    learningGoals: mergedGoals,
+    aiMentorPlan: mergedPlan,
+    chatHistory: mergedChatHistory,
     updatedAt: new Date().toISOString()
   } as any);
 
@@ -136,6 +145,10 @@ async function mergeGuestWithCloudAndSave(
     language: mergedLanguage,
     customExamDetails: mergedCustomDetails,
     onboarded: mergedOnboarded,
+    customStudyNotes: mergedCustomNotes,
+    learningGoals: mergedGoals,
+    aiMentorPlan: mergedPlan,
+    chatHistory: mergedChatHistory,
     performance: {
       strongTopics: computedPerf.strongTopics,
       weakTopics: computedPerf.weakTopics,
@@ -232,6 +245,10 @@ export function usePersistence() {
           weakTopics: updatedProfile.performance.weakTopics,
           knowledgeProfile: updatedProfile.performance.knowledgeProfile,
           lastAiAnalysis: updatedProfile.performance.lastAiAnalysis || null,
+          customStudyNotes: updatedProfile.customStudyNotes || null,
+          learningGoals: updatedProfile.learningGoals || null,
+          aiMentorPlan: updatedProfile.aiMentorPlan || null,
+          chatHistory: updatedProfile.chatHistory || null,
           updatedAt: new Date().toISOString()
         } as any);
       } catch (error) {
