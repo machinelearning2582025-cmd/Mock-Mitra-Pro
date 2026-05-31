@@ -11,7 +11,7 @@ import { usePersistence } from './hooks/usePersistence';
 import { QUESTIONS } from './data/questions';
 import { generateQuestionsAPI, analyzePerformanceAPI } from './services/api';
 import { Topic, Question, DrillSetup } from './types';
-import { Loader2, Download, Smartphone, Share2, X, Sparkles, Zap } from 'lucide-react';
+import { Loader2, Download, Smartphone, Share2, X, Sparkles, Zap, ShieldAlert, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getExamConfig } from './data/examsConfig';
 
@@ -29,6 +29,40 @@ export default function App() {
   } = usePersistence();
   
   const [appState, setAppState] = useState<AppState>('landing');
+  const [authError, setAuthError] = useState<{ type: 'popup-blocked' | 'closed' | 'other'; message: string } | null>(null);
+
+  const handleLoginWithGoogle = async () => {
+    setAuthError(null);
+    try {
+      const res = await loginWithGoogle();
+      return res;
+    } catch (err: any) {
+      console.error("Google login failed globally:", err);
+      const errMsg = err?.message || String(err);
+      if (errMsg.includes("popup-blocked") || errMsg.includes("auth/popup-blocked")) {
+        setAuthError({
+          type: 'popup-blocked',
+          message: "Aapka browser Google login popup block kar raha hai: Address bar (URL bar) me settings 🔒 click karke Popups allow karein! Ya phir screen ke right-top ke 'New Tab' button se open karein jo iframe block ko fully bypass karta hai."
+        });
+      } else if (errMsg.includes("popup-closed-by-user") || errMsg.includes("auth/closed-by-user") || errMsg.includes("closed-by-user")) {
+        setAuthError({
+          type: 'closed',
+          message: "Sign-In window band ho gayi thi (Closed by user). Link karne ke liye wapas click karein, and window pure open rakhein!"
+        });
+      } else if (errMsg.includes("cancelled-popup-request") || errMsg.includes("auth/cancelled-popup-request")) {
+        setAuthError({
+          type: 'other',
+          message: "Pichli popup process cancel ho gayi. Doobara try karein!"
+        });
+      } else {
+        setAuthError({
+          type: 'other',
+          message: `Account link error: ${err?.message || "Google Connection Issue"}`
+        });
+      }
+      throw err;
+    }
+  };
 
   // Automatically keep appState in sync with onboarding status
   useEffect(() => {
@@ -244,7 +278,7 @@ export default function App() {
           onLogout={handleLogout}
           onInstallClick={isInstalled ? undefined : handleInstallClick}
           firebaseUser={firebaseUser}
-          onLoginWithGoogle={loginWithGoogle}
+          onLoginWithGoogle={handleLoginWithGoogle}
         />
       )}
 
@@ -301,7 +335,7 @@ export default function App() {
           profile={profile} 
           onUpdate={updateProfile}
           firebaseUser={firebaseUser}
-          onLoginWithGoogle={loginWithGoogle}
+          onLoginWithGoogle={handleLoginWithGoogle}
         />
 
         {appState === 'testing' && (
@@ -459,6 +493,61 @@ export default function App() {
                 </div>
               </motion.div>
             </div>
+          )}
+        </AnimatePresence>
+
+        {/* Global Google Auth Error Banner with Hinglish Instructions */}
+        <AnimatePresence>
+          {authError && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              className="fixed bottom-6 left-4 right-4 md:left-6 md:right-auto md:max-w-md z-50 pointer-events-auto"
+            >
+              <div className="relative overflow-hidden rounded-2xl bg-[#140b0f] border border-rose-500/30 p-5 shadow-[0_0_25px_rgba(244,63,94,0.15)] flex gap-3">
+                <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 shrink-0 self-start">
+                  <ShieldAlert className="w-5 h-5 text-rose-400 animate-pulse" />
+                </div>
+                
+                <div className="flex-1 min-w-0 font-sans">
+                  <h4 className="text-xs font-black uppercase text-rose-300 tracking-wider">
+                    {authError.type === 'popup-blocked' ? 'Google Popup Blocked!' : 'Google Sync Alert'}
+                  </h4>
+                  <p className="text-[11px] text-slate-300 leading-relaxed mt-1 font-medium select-none">
+                    {authError.message}
+                  </p>
+                  
+                  <div className="mt-3.5 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAuthError(null)}
+                      className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white font-extrabold text-[9px] uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                    >
+                      Bypass (Guest Mode Chalu Rakhein)
+                    </button>
+                    {authError.type === 'popup-blocked' && (
+                      <a
+                        href={window.location.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 bg-rose-500/25 hover:bg-rose-500/40 text-rose-200 border border-rose-500/30 font-extrabold text-[9px] uppercase tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        Open In New Tab <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setAuthError(null)}
+                  className="sm:absolute top-3 right-3 p-1 text-slate-500 hover:text-white rounded-md transition-colors cursor-pointer"
+                  title="Close Alert"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </main>

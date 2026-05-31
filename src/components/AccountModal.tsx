@@ -46,13 +46,13 @@ export default function AccountModal({
       console.error("Link error:", err);
       const errMsg = err?.message || String(err);
       if (errMsg.includes("auth/popup-closed-by-user") || errMsg.includes("popup-closed-by-user")) {
-        setLinkError("The sign-in popup was closed before completing (साइन-इन पॉपअप बंद हो गया था). Please keep the window open to link your account successfully!");
+        setLinkError("Google Sign-In sheet window aapne bech me close kar di thi (पॉपअप बंद हो गया). Kripya complete hone tak window open rakhein!");
       } else if (errMsg.includes("auth/cancelled-popup-request") || errMsg.includes("cancelled-popup-request")) {
-        setLinkError("Another login request was started, or the popup was cancelled. Please try clicking again.");
+        setLinkError("Pichla request chalu thi ya cancel ho gayi. Kripya doobara link button dabaayein.");
       } else if (errMsg.includes("auth/popup-blocked") || errMsg.includes("popup-blocked")) {
-        setLinkError("The Google popup was blocked by your browser (पॉपअप ब्लॉक हो गया). Please allow popups for Mock-Mitra and try again!");
+        setLinkError("Browser ne Google popup block kar diya (पॉपअप ब्लॉक)! 🔒 URL bar me Settings/Popup perm allow karein ya pure experience ke liye top-right of the screen se 'Open in New Tab' karke try karein.");
       } else {
-        setLinkError(errMsg || "Connection to Google was cancelled or failed. Please try again.");
+        setLinkError("Iframe sandbox restrictions ya cancel hone ke wajah se connection retry karna hoga.");
       }
     } finally {
       setIsLinking(false);
