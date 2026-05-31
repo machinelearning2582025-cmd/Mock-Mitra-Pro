@@ -166,14 +166,33 @@ export default function Dashboard({
 
         {/* AI Expert Insight Card */}
         {profile.performance.lastAiAnalysis && (
-          <div className="md:col-span-12 bento-card border-brand/20 bg-brand/5">
-            <div className="flex items-center gap-2 text-brand text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-              <Sparkles className="w-4 h-4" /> Smart Guide • Preparation Strategy
+          <div className="md:col-span-12 bento-card border-brand/30 bg-[#12151C] relative">
+            <Zap className="absolute top-6 right-6 w-5 h-5 text-brand animate-pulse" />
+            <div className="flex items-center gap-2 text-brand text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+              <Sparkles className="w-4 h-4 text-brand" /> Smart Mentor Advice • Preparation Strategy
             </div>
-            <div>
-              <h4 className="text-xl font-bold mb-2 text-white">{profile.performance.lastAiAnalysis.summary}</h4>
-              <div className="text-slate-400 text-sm leading-relaxed">
-                <MarkdownRenderer text={profile.performance.lastAiAnalysis.weakTopicAnalysis} />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+              <div className="lg:col-span-6 space-y-6">
+                <div>
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Overall Performance Analysis</h4>
+                  <p className="text-slate-300 text-sm leading-relaxed italic border-l-2 border-brand/50 pl-4 font-medium">
+                    "{profile.performance.lastAiAnalysis.summary}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="lg:col-span-6 space-y-4">
+                <div>
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Recommended Milestones</h4>
+                  <div className="space-y-2.5">
+                    {profile.performance.lastAiAnalysis.suggestions?.slice(0, 3).map((s, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3.5 bg-white/5 rounded-xl text-xs font-semibold text-slate-300 border border-white/5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-brand mt-1.5 shrink-0" />
+                        {s}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
