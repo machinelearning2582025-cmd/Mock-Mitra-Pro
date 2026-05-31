@@ -306,10 +306,10 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
               exit={{ opacity: 0, scale: 0.98 }}
               className="flex flex-col h-full justify-between py-2"
             >
-              {/* Chat Display Box - Raised min-height for beautiful viewport scrolling in mobile */}
+              {/* Chat Display Box - Raised height to approx 80% display height for beautiful mobile layout */}
               <div 
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto min-h-[280px] h-[280px] sm:min-h-[350px] sm:h-[350px] pr-1.5 mb-3.5 space-y-3.5 custom-scrollbar"
+                className="flex-1 overflow-y-auto h-[65vh] min-h-[380px] max-h-[75vh] md:h-[520px] md:max-h-[520px] pr-1.5 mb-3.5 space-y-3.5 custom-scrollbar"
               >
                 {chatMessages.map((msg, idx) => (
                   <div 

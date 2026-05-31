@@ -250,8 +250,8 @@ export default function Dashboard({
         </div>
 
         {/* Section: Log History */}
-        <div className="md:col-span-12 lg:col-span-8 bento-card border-white/5 relative overflow-hidden p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+        <div className="md:col-span-12 lg:col-span-8 bento-card border-white/5 relative overflow-hidden p-6 sm:p-8 flex flex-col h-full max-h-[460px]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 sticky top-0 bg-[#12151C] z-10 pb-4">
             <div>
               <h3 className="text-xl font-black text-white uppercase tracking-tight flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-brand" /> Practice History
@@ -262,30 +262,32 @@ export default function Dashboard({
                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest bg-slate-900 px-3 py-1.5 rounded-lg border border-white/5">Auto-Saved</span>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {history.slice(-4).reverse().map((test, i) => (
-              <motion.div 
-                whileHover={{ scale: 1.01 }}
-                key={`${test.date}-${i}`} 
-                onClick={() => onViewResult(test)}
-                className="p-5 bg-white/[0.02] rounded-2xl border border-white/5 flex items-center justify-between group hover:bg-white/[0.05] hover:border-brand/20 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 font-black text-sm border border-white/5 group-hover:border-brand/20 transition-colors">
-                    {new Date(test.date).getDate()}
+          <div className="flex-1 overflow-y-auto max-h-[280px] pr-2 custom-scrollbar">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {history.slice().reverse().map((test, i) => (
+                <motion.div 
+                  whileHover={{ scale: 1.01 }}
+                  key={`${test.date}-${i}`} 
+                  onClick={() => onViewResult(test)}
+                  className="p-5 bg-white/[0.02] rounded-2xl border border-white/5 flex items-center justify-between group hover:bg-white/[0.05] hover:border-brand/20 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 font-black text-sm border border-white/5 group-hover:border-brand/20 transition-colors">
+                      {new Date(test.date).getDate()}
+                    </div>
+                    <div>
+                      <div className="text-base font-black text-white group-hover:text-brand transition-colors truncate max-w-[120px]">{test.subject}</div>
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{new Date(test.date).toLocaleDateString()}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-base font-black text-white group-hover:text-brand transition-colors truncate max-w-[120px]">{test.subject}</div>
-                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">{new Date(test.date).toLocaleDateString()}</div>
+                  <div className="text-right">
+                    <div className="text-xl font-black text-brand tracking-tighter">{test.score}<span className="text-slate-600 text-sm ml-1">/{test.total}</span></div>
+                    <div className="text-[10px] font-black text-slate-700 uppercase tracking-widest leading-none mt-1">Efficiency</div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-black text-brand tracking-tighter">{test.score}<span className="text-slate-600 text-sm ml-1">/{test.total}</span></div>
-                  <div className="text-[10px] font-black text-slate-700 uppercase tracking-widest leading-none mt-1">Efficiency</div>
-                </div>
-              </motion.div>
-            ))}
-            {history.length === 0 && <div className="col-span-2 text-center py-12 text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] opacity-40">No records found • System idle</div>}
+                </motion.div>
+              ))}
+              {history.length === 0 && <div className="col-span-2 text-center py-12 text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] opacity-40">No records found • System idle</div>}
+            </div>
           </div>
         </div>
 
