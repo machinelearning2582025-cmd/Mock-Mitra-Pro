@@ -35,6 +35,12 @@ export interface TestResult {
   subject: Subject | 'Full Mock';
   topicPerformance: Partial<Record<Topic, { correct: number; total: number }>>;
   questions?: Question[];
+  aiAnalysis?: {
+    summary: string;
+    weakTopicAnalysis: string;
+    suggestions: string[];
+    predictedBrief: string;
+  };
 }
 
 export interface UserProfile {

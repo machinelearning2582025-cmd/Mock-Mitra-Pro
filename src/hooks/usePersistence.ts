@@ -228,27 +228,31 @@ export function usePersistence() {
 
   // Update profile handler
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    const updatedProfile = { ...profile, ...updates };
-    setProfile(updatedProfile);
+    let finalProfile: UserProfile | null = null;
+    setProfile((prev) => {
+      finalProfile = { ...prev, ...updates };
+      return finalProfile;
+    });
 
     // If logged in, sync basic attributes to Firestore
     if (firebaseUser) {
       try {
+        const activeProfile = finalProfile || { ...profile, ...updates };
         await saveUserProfileToFirestore(firebaseUser.uid, {
-          name: updatedProfile.name,
-          exam: updatedProfile.exam,
-          language: updatedProfile.language,
-          customExamDetails: updatedProfile.customExamDetails || null,
-          onboarded: updatedProfile.onboarded,
-          streak: updatedProfile.performance.streak,
-          strongTopics: updatedProfile.performance.strongTopics,
-          weakTopics: updatedProfile.performance.weakTopics,
-          knowledgeProfile: updatedProfile.performance.knowledgeProfile,
-          lastAiAnalysis: updatedProfile.performance.lastAiAnalysis || null,
-          customStudyNotes: updatedProfile.customStudyNotes || null,
-          learningGoals: updatedProfile.learningGoals || null,
-          aiMentorPlan: updatedProfile.aiMentorPlan || null,
-          chatHistory: updatedProfile.chatHistory || null,
+          name: activeProfile.name,
+          exam: activeProfile.exam,
+          language: activeProfile.language,
+          customExamDetails: activeProfile.customExamDetails || null,
+          onboarded: activeProfile.onboarded,
+          streak: activeProfile.performance.streak,
+          strongTopics: activeProfile.performance.strongTopics,
+          weakTopics: activeProfile.performance.weakTopics,
+          knowledgeProfile: activeProfile.performance.knowledgeProfile,
+          lastAiAnalysis: activeProfile.performance.lastAiAnalysis || null,
+          customStudyNotes: activeProfile.customStudyNotes || null,
+          learningGoals: activeProfile.learningGoals || null,
+          aiMentorPlan: activeProfile.aiMentorPlan || null,
+          chatHistory: activeProfile.chatHistory || null,
           updatedAt: new Date().toISOString()
         } as any);
       } catch (error) {
@@ -259,84 +263,88 @@ export function usePersistence() {
 
   // Add historical test result handler
   const addTestResult = useCallback(async (result: TestResult, aiAnalysis?: any) => {
-    // 1. Calculate new history
-    const history = [...profile.performance.testHistory, result];
-    
-    // 2. Calculate dynamic streak
-    const dates = [...new Set(history.map(h => new Date(h.date).toDateString()))]
-      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    
-    let streak = 0;
-    if (dates.length > 0) {
-      const today = new Date().toDateString();
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const resultWithAnalysis = {
+      ...result,
+      aiAnalysis: aiAnalysis || result.aiAnalysis
+    };
+
+    setProfile((prev) => {
+      // 1. Calculate new history
+      const history = [...prev.performance.testHistory, resultWithAnalysis];
       
-      if (dates[0] === today || dates[0] === yesterday) {
-        streak = 1;
-        for (let i = 0; i < dates.length - 1; i++) {
-          const current = new Date(dates[i]);
-          const next = new Date(dates[i+1]);
-          const diff = (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
-          if (Math.round(diff) === 1) {
-            streak++;
-          } else {
-            break;
+      // 2. Calculate dynamic streak
+      const dates = [...new Set(history.map(h => new Date(h.date).toDateString()))]
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+      
+      let streak = 0;
+      if (dates.length > 0) {
+        const today = new Date().toDateString();
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        
+        if (dates[0] === today || dates[0] === yesterday) {
+          streak = 1;
+          for (let i = 0; i < dates.length - 1; i++) {
+            const current = new Date(dates[i]);
+            const next = new Date(dates[i+1]);
+            const diff = (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
+            if (Math.round(diff) === 1) {
+              streak++;
+            } else {
+              break;
+            }
           }
         }
       }
-    }
 
-    // 3. Compute knowledge Profile and subtopic metrics
-    const kProfile = { ...profile.performance.knowledgeProfile };
-    
-    Object.entries(result.topicPerformance).forEach(([topic, data]) => {
-      if (!data) return;
-      const accuracy = (data.correct / data.total) * 100;
-      const currentVal = kProfile[topic as Topic] || 50;
-      kProfile[topic as Topic] = Math.round((currentVal * 0.7) + (accuracy * 0.3));
-    });
+      // 3. Compute knowledge Profile and subtopic metrics
+      const kProfile = { ...prev.performance.knowledgeProfile };
+      
+      Object.entries(resultWithAnalysis.topicPerformance).forEach(([topic, data]) => {
+        if (!data) return;
+        const accuracy = (data.correct / data.total) * 100;
+        const currentVal = kProfile[topic as Topic] || 50;
+        kProfile[topic as Topic] = Math.round((currentVal * 0.7) + (accuracy * 0.3));
+      });
 
-    const entries = Object.entries(kProfile) as [Topic, number][];
-    const weakTopics = entries.filter(([_, score]) => score < 60).map(([topic]) => topic);
-    const strongTopics = entries.filter(([_, score]) => score >= 80).map(([topic]) => topic);
+      const entries = Object.entries(kProfile) as [Topic, number][];
+      const weakTopics = entries.filter(([_, score]) => score < 60).map(([topic]) => topic);
+      const strongTopics = entries.filter(([_, score]) => score >= 80).map(([topic]) => topic);
 
-    const updatedPerformance = {
-      ...profile.performance,
-      testHistory: history,
-      knowledgeProfile: kProfile,
-      weakTopics,
-      strongTopics,
-      streak,
-      lastAiAnalysis: aiAnalysis || profile.performance.lastAiAnalysis
-    };
+      const updatedPerformance = {
+        ...prev.performance,
+        testHistory: history,
+        knowledgeProfile: kProfile,
+        weakTopics,
+        strongTopics,
+        streak,
+        lastAiAnalysis: aiAnalysis || prev.performance.lastAiAnalysis
+      };
 
-    const newProfile = {
-      ...profile,
-      performance: updatedPerformance
-    };
+      const newProfile = {
+        ...prev,
+        performance: updatedPerformance
+      };
 
-    setProfile(newProfile);
-
-    // Sync to Firestore if authenticated
-    if (firebaseUser) {
-      try {
-        // Save test dynamically to its independent subcollection path
-        await saveTestResultToFirestore(firebaseUser.uid, result);
-
-        // Update parent profile document with aggregated performance fields
-        await saveUserProfileToFirestore(firebaseUser.uid, {
+      // Sync to Firestore asynchronously
+      if (firebaseUser) {
+        saveTestResultToFirestore(firebaseUser.uid, resultWithAnalysis).catch(err => {
+          console.error("Background error saving test to Firestore:", err);
+        });
+        saveUserProfileToFirestore(firebaseUser.uid, {
           streak,
           strongTopics,
           weakTopics,
           knowledgeProfile: kProfile,
           lastAiAnalysis: aiAnalysis || null,
           updatedAt: new Date().toISOString()
-        } as any);
-      } catch (error) {
-        console.error("Failed to sync new test & performance to Firestore:", error);
+        } as any).catch(err => {
+          console.error("Background error updating profile in Firestore:", err);
+        });
       }
-    }
-  }, [profile, firebaseUser]);
+
+      return newProfile;
+    });
+  }, [firebaseUser]);
 
   // Handle Google Sign In popup
   const loginWithGoogle = async () => {
@@ -375,12 +383,48 @@ export function usePersistence() {
     }
   };
 
+  const updateTestResultWithAnalysis = useCallback(async (date: string, aiAnalysis: any) => {
+    setProfile((prev) => {
+      const history = prev.performance.testHistory.map(h => {
+        if (h.date === date) {
+          return { ...h, aiAnalysis };
+        }
+        return h;
+      });
+
+      // Update in Firestore as well
+      const matchedTest = history.find(h => h.date === date);
+      if (firebaseUser && matchedTest) {
+        saveTestResultToFirestore(firebaseUser.uid, matchedTest).catch(e => console.error(e));
+        
+        // Also update lastAiAnalysis in profile if this is the newest test
+        const isNewest = history.length > 0 && history[history.length - 1].date === date;
+        if (isNewest) {
+          saveUserProfileToFirestore(firebaseUser.uid, {
+            lastAiAnalysis: aiAnalysis,
+            updatedAt: new Date().toISOString()
+          } as any).catch(e => console.error(e));
+        }
+      }
+
+      return {
+        ...prev,
+        performance: {
+          ...prev.performance,
+          testHistory: history,
+          lastAiAnalysis: history.length > 0 && history[history.length - 1].date === date ? aiAnalysis : prev.performance.lastAiAnalysis
+        }
+      };
+    });
+  }, [firebaseUser]);
+
   return { 
     profile, 
     firebaseUser,
     authLoading,
     updateProfile, 
     addTestResult,
+    updateTestResultWithAnalysis,
     loginWithGoogle,
     logout 
   };

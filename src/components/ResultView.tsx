@@ -1,7 +1,8 @@
 import { motion } from 'motion/react';
 import { Trophy, ArrowRight, Share2, AlertCircle, CheckCircle2, TrendingUp, Sparkles, Zap } from 'lucide-react';
-import { Topic, Question } from '../types';
+import { Topic, Question, UserProfile } from '../types';
 import QuestionReview from './QuestionReview';
+import AILearningDesk from './AILearningDesk';
 
 interface ResultViewProps {
   score: number;
@@ -16,6 +17,9 @@ interface ResultViewProps {
     suggestions: string[];
     predictedBrief: string;
   };
+  profile: UserProfile;
+  onUpdateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  onStartCustomDrill: (prompt: string) => void;
   onDashboard: () => void;
   onNextTest: () => void;
 }
@@ -28,6 +32,9 @@ export default function ResultView({
   questions, 
   userAnswers, 
   aiAnalysis, 
+  profile,
+  onUpdateProfile,
+  onStartCustomDrill,
   onDashboard,
   onNextTest
 }: ResultViewProps) {
@@ -35,6 +42,27 @@ export default function ResultView({
   
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
+      {/* Top action header */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+        <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2">
+          <Trophy className="text-brand w-6 h-6" /> Test Report
+        </h2>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button 
+            onClick={onDashboard}
+            className="flex-1 sm:flex-initial px-6 py-3 bg-white/5 text-slate-300 border border-white/10 text-xs font-black uppercase rounded-xl hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-1.5"
+          >
+            Dashboard <ArrowRight className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={onNextTest}
+            className="flex-1 sm:flex-initial px-6 py-3 bg-brand text-white text-xs font-black uppercase rounded-xl hover:bg-brand-light transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-brand/20"
+          >
+            Start Next Test <Zap className="w-4 h-4 fill-current" />
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Main Hero Result Card */}
@@ -114,6 +142,15 @@ export default function ResultView({
           )}
         </div>
 
+        {/* Personalized AI Roadmaps/Learning Desk replaces Next Step */}
+        <div className="lg:col-span-12 xl:col-span-8 p-0">
+          <AILearningDesk 
+            profile={profile}
+            onUpdateProfile={onUpdateProfile}
+            onStartCustomDrill={onStartCustomDrill}
+          />
+        </div>
+
         {/* Topic Breakdown Bento Section */}
         <div className="lg:col-span-4 bento-card bg-[#12151C]">
           <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Subject Wise Report</h3>
@@ -132,37 +169,14 @@ export default function ResultView({
           </div>
         </div>
 
-        {/* Next Protocol Action */}
-        <div className="lg:col-span-12 xl:col-span-8 bento-card bg-brand border-none text-white p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[80px] rounded-full -mr-32 -mt-32 transition-all group-hover:bg-white/10" />
-          <div className="flex items-center gap-6 sm:gap-8 relative z-10 w-full md:w-auto">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-2xl flex items-center justify-center border border-white/20 shadow-xl shrink-0">
-               <Zap className="w-7 h-7 sm:w-8 sm:h-8 text-white fill-current" />
-            </div>
-            <div>
-              <span className="text-[10px] font-black uppercase text-blue-100 tracking-[0.2em] mb-2 block">Your Next Step</span>
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight">{aiAnalysis?.predictedBrief || 'Analyzing Your Preparation...'}</h3>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10 w-full md:w-auto">
-            <button 
-              onClick={onDashboard}
-              className="w-full md:w-auto px-10 py-5 bg-white/10 text-white font-black rounded-2xl border border-white/20 shadow-2xl hover:bg-white/20 transform transition-all active:scale-95 uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-3 relative z-10"
-            >
-              Dashboard <ArrowRight className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={onNextTest}
-              className="w-full md:w-auto px-10 py-5 bg-white text-brand font-black rounded-2xl shadow-2xl hover:bg-slate-100 transform transition-all active:scale-95 uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-3 relative z-10"
-            >
-              Next Test <Zap className="w-5 h-5 fill-current" />
-            </button>
-          </div>
-        </div>
-
         {/* Detailed Question Review Section */}
         <div className="lg:col-span-12">
-          <QuestionReview questions={questions} userAnswers={userAnswers} onNextTest={onNextTest} />
+          <QuestionReview 
+            questions={questions} 
+            userAnswers={userAnswers} 
+            onNextTest={onNextTest} 
+            profile={profile}
+          />
         </div>
 
       </div>

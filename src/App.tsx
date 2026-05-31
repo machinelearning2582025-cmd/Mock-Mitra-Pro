@@ -24,7 +24,8 @@ export default function App() {
     authLoading, 
     updateProfile, 
     addTestResult, 
-    loginWithGoogle, 
+    updateTestResultWithAnalysis,
+    loginWithGoogle,
     logout 
   } = usePersistence();
   
@@ -97,10 +98,25 @@ export default function App() {
   const [isDrillSetupOpen, setIsDrillSetupOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
-  const viewTestResult = (result: any) => {
+  const viewTestResult = async (result: any) => {
     setLastResults(result);
-    setAiAnalysis(result.aiAnalysis || null);
     setAppState('results');
+    
+    if (result.aiAnalysis) {
+      setAiAnalysis(result.aiAnalysis);
+    } else {
+      setAiAnalysis(null);
+      try {
+        const analysis = await analyzePerformanceAPI(result.score, result.total, result.topicPerformance, profile.exam, profile.language);
+        if (analysis) {
+          setAiAnalysis(analysis);
+          setLastResults((prev: any) => prev && prev.date === result.date ? { ...prev, aiAnalysis: analysis } : prev);
+          await updateTestResultWithAnalysis(result.date, analysis);
+        }
+      } catch (err) {
+        console.error("Failed to generate missing history analysis:", err);
+      }
+    }
   };
 
   const startNewTest = useCallback(async (setup?: DrillSetup, specificTopics?: Topic[]) => {
@@ -184,22 +200,28 @@ export default function App() {
     topicPerformance: Record<Topic, { correct: number; total: number }>;
     userAnswers: Record<string, number>;
   }) => {
-    const testData = {
+    const initialTestData = {
       ...results,
       questions: currentTestQuestions,
       date: new Date().toISOString(),
       subject: 'Full Mock' as const,
     };
     
-    setLastResults(testData);
+    setLastResults(initialTestData);
     setAppState('results');
 
     // Trigger AI analysis via API
     const analysis = await analyzePerformanceAPI(results.score, results.total, results.topicPerformance, profile.exam, profile.language);
     setAiAnalysis(analysis);
     
+    const finalTestData = {
+      ...initialTestData,
+      aiAnalysis: analysis
+    };
+    setLastResults(finalTestData);
+    
     // Save test results with AI analysis to profile (only call this once)
-    await addTestResult(testData, analysis);
+    await addTestResult(finalTestData, analysis);
 
     // Run lightning-fast background distillation after mock completes
     setTimeout(async () => {
@@ -208,7 +230,7 @@ export default function App() {
           ...profile,
           performance: {
             ...profile.performance,
-            testHistory: [...profile.performance.testHistory, testData],
+            testHistory: [...profile.performance.testHistory, finalTestData],
           }
         };
         const updatedPlan = await updatePersonalisedProfileBackgroundAPI(latestProfile, profile.language);
@@ -375,6 +397,9 @@ export default function App() {
             <ResultView 
               {...lastResults} 
               aiAnalysis={aiAnalysis}
+              profile={profile}
+              onUpdateProfile={updateProfile}
+              onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
               onDashboard={() => setAppState('dashboard')}
               onNextTest={() => startNewTest()}
             />

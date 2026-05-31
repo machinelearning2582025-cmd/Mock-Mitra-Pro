@@ -56,8 +56,8 @@ service cloud.firestore {
 
       // Subcollection for isolated test results
       match /tests/{testId} {
-        allow get, list, create: if isOwner(userId);
-        allow update, delete: if false; // Test history is immutable once taken to prevent cheating or data loss
+        allow get, list, create, update: if isOwner(userId);
+        allow delete: if false;
       }
     }
   }

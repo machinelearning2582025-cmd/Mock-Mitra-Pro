@@ -3,6 +3,7 @@ import { Sparkles, Save, Send, RefreshCw, CheckCircle2, Circle, Loader2, BookOpe
 import { UserProfile } from '../types';
 import { generateLearningStrategyAPI, chatWithMitraAPI, updatePersonalisedProfileBackgroundAPI } from '../services/api';
 import { motion, AnimatePresence } from 'motion/react';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface AILearningDeskProps {
   profile: UserProfile;
@@ -319,25 +320,8 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
                       {msg.role === 'user' ? <User className="w-3 h-3 sm:w-3.5 h-3.5" /> : <Sparkles className="w-3 h-3 sm:w-3.5 h-3.5" />}
                     </div>
                     
-                    <div className={`p-2.5 sm:p-3 rounded-2xl leading-relaxed whitespace-pre-wrap text-[11px] sm:text-xs ${msg.role === 'user' ? 'bg-indigo-600/10 text-slate-200 border border-indigo-500/10 rounded-tr-none' : 'bg-white/5 text-slate-300 border border-white/5 rounded-tl-none font-sans'}`}>
-                      {/* Render simple markdown styling bold / bullets safely */}
-                      {msg.text.split('\n').map((para, pIdx) => {
-                        let processed = para;
-                        // Format bold elements **text** -> <strong>text</strong>
-                        const boldRegex = /\*\*(.*?)\*\*/g;
-                        const matches = processed.match(boldRegex);
-                        if (matches) {
-                          processed = processed.replace(boldRegex, '<strong>$1</strong>');
-                        }
-                        
-                        return (
-                          <p 
-                            key={pIdx} 
-                            className={`${pIdx !== 0 ? 'mt-1' : ''}`} 
-                            dangerouslySetInnerHTML={{ __html: processed }} 
-                          />
-                        );
-                      })}
+                    <div className={`p-2.5 sm:p-3 rounded-2xl leading-relaxed text-[11px] sm:text-xs ${msg.role === 'user' ? 'bg-indigo-600/10 text-slate-200 border border-indigo-500/10 rounded-tr-none' : 'bg-white/5 text-slate-300 border border-white/5 rounded-tl-none font-sans'}`}>
+                      <MarkdownRenderer text={msg.text} />
                     </div>
                   </div>
                 ))}

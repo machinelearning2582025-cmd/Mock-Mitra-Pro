@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Question, Topic, UserPerformance, DrillSetup } from "../types";
 import { getExamConfig } from "../data/examsConfig";
+import { QUESTIONS } from "../data/questions";
 
 // The platform injects GEMINI_API_KEY into process.env for the frontend
 const apiKey = process.env.GEMINI_API_KEY;
@@ -19,19 +20,21 @@ export async function analyzePerformanceAPI(
   examType: string = "SSC CGL",
   language: string = "English"
 ) {
-  if (!apiKey) return null;
+  if (!apiKey) {
+    return generateStaticPerformanceFallback(score, total, topicPerformance, examType, language);
+  }
   
-    const generate = async (modelName: string) => {
-      return await ai.models.generateContent({
-        model: modelName,
-        contents: `
-          User score: ${score}/${total}.
-          Performance by topic: ${JSON.stringify(topicPerformance)}.
-          Analyze this student's performance for the exam: ${examType}.
-          LANGUAGE PREFERENCE: ${language}.
-          Provide a supportive, motivating analysis in the language: ${language}.
-          Identify clearly what to focus on next and a small 'Study Plan' brief based on the exam's typical patterns.
-        `,
+  const generate = async (modelName: string) => {
+    return await ai.models.generateContent({
+      model: modelName,
+      contents: `
+        User score: ${score}/${total}.
+        Performance by topic: ${JSON.stringify(topicPerformance)}.
+        Analyze this student's performance for the exam: ${examType}.
+        LANGUAGE PREFERENCE: ${language}.
+        Provide a supportive, motivating analysis in the language: ${language}.
+        Identify clearly what to focus on next and a small 'Study Plan' brief based on the exam's typical patterns.
+      `,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -59,11 +62,65 @@ export async function analyzePerformanceAPI(
       console.warn(`Primary model ${MODEL_FLASH} failed, using fallback ${MODEL_LITE}`);
       response = await generate(MODEL_LITE);
     }
-    return JSON.parse(response.text || "{}");
+    const parsed = JSON.parse(response.text || "{}");
+    if (parsed && parsed.summary && parsed.weakTopicAnalysis) {
+      return parsed;
+    }
+    throw new Error("Invalid performance analysis JSON response");
   } catch (error) {
-    console.error("Gemini Performance Analysis Error:", error);
-    return null;
+    console.error("Gemini Performance Analysis Error, falling back gracefully:", error);
+    return generateStaticPerformanceFallback(score, total, topicPerformance, examType, language);
   }
+}
+
+function generateStaticPerformanceFallback(
+  score: number,
+  total: number,
+  topicPerformance: Partial<Record<Topic, { correct: number; total: number }>>,
+  examType: string,
+  language: string
+) {
+  const pct = Math.round((score / total) * 100);
+  const mockWeakTopics = Object.keys(topicPerformance).filter(t => {
+    const perf = topicPerformance[t as Topic];
+    return perf && perf.correct / perf.total < 0.7;
+  });
+  const weakList = mockWeakTopics.length > 0 ? mockWeakTopics : ["General Revision"];
+  
+  const isHinglish = language.toLowerCase() === 'hinglish';
+  
+  return {
+    summary: pct >= 80 
+      ? (isHinglish ? "Excellent output! Aapka standard and command clear hai. Continuously practice karte rahein." : "Excellent performance! Your command over the concepts is clear. Keep practice continuous.")
+      : pct >= 50 
+      ? (isHinglish ? "Aacha performance hai par strong hold banane ke liye concept practice and continuous mocks ki jarurat hai." : "Good effort! Regular practice will strengthen weak topics for consistent high scores.")
+      : (isHinglish ? "Foundational level pe work karne ki jarurat hai. No worries, continuous practice se improve hoga!" : "Foundational revision recommended. Keep practicing and clearing doubts to boost your accuracy!"),
+    weakTopicAnalysis: isHinglish ? `Aapko in fields/topics pe special focus dena chahiye: **${weakList.join(', ')}**. 
+Review the incorrect answers carefully to build conceptual strength. 
+    
+* **Recommended approach:**
+1. Revise weak formulas/theorems.
+2. Attend targeted practice drills in weak chapters.
+3. Stay consistent and track daily progress.` : `Focus areas for improvement: **${weakList.join(', ')}**. 
+Reviewing incorrect responses will build substantial conceptual depth.
+    
+* **Recommended study steps:**
+1. Focus on weak equations and concepts first.
+2. Take dedicated micro-practice sessions for these topics.
+3. Align daily goals with systematic tracker checklists.`,
+    suggestions: isHinglish ? [
+      "Go through incorrect questions closely in this report.",
+      "Practice dedicated 5-minute medium difficulty drills daily.",
+      "Make concrete summary revision card sheets for formula recall."
+    ] : [
+      "Review the incorrect answers carefully from the review tab.",
+      "Solve rapid daily quizzes on your weak subjects.",
+      "Maintain active study sheets for quick formula recall."
+    ],
+    predictedBrief: isHinglish 
+      ? `Focus on strengthening ${weakList[0]} with targeted revisions.` 
+      : `Strengthen ${weakList[0]} systematically starting today.`
+  };
 }
 
 export async function generateQuestionsAPI(
@@ -206,10 +263,33 @@ export async function generateQuestionsAPI(
       console.warn(`Primary model ${MODEL_FLASH} failed, using fallback ${MODEL_LITE}`);
       response = await generate(MODEL_LITE);
     }
-    return JSON.parse(response.text || "[]");
+    const parsed = JSON.parse(response.text || "[]");
+    if (parsed && parsed.length > 0) {
+      return parsed;
+    }
+    throw new Error("Empty questions list returned from Gemini API");
   } catch (error) {
-    console.error("Gemini Generation Error:", error);
-    return [];
+    console.warn("Gemini Generation Error, using static questions fallback:", error);
+    
+    // Filter local static questions by matching user topics
+    const matching = QUESTIONS.filter(q => 
+      topics.some(t => q.topic.toLowerCase().includes(t.toLowerCase()) || q.subject.toLowerCase().includes(t.toLowerCase()))
+    );
+    
+    let result = [...matching];
+    
+    // If not enough questions match, fill with other random questions from QUESTIONS list
+    if (result.length < count) {
+      const remaining = QUESTIONS.filter(q => !result.some(rq => rq.id === q.id));
+      const needed = count - result.length;
+      result = [...result, ...remaining.slice(0, needed)];
+    }
+    
+    // Ensure unique IDs to prevent duplicate key rendering issues
+    return result.slice(0, count).map((q, idx) => ({
+      ...q,
+      id: `${q.id}-fallback-${idx}-${Date.now()}`
+    }));
   }
 }
 
@@ -217,7 +297,9 @@ export async function generateLearningStrategyAPI(
   profile: any,
   language: string = "Hinglish"
 ) {
-  if (!apiKey) return null;
+  if (!apiKey) {
+    return generateStaticLearningStrategyFallback(profile, language);
+  }
 
   const weakTopics = profile.performance.weakTopics.join(", ");
   const strongTopics = profile.performance.strongTopics.join(", ");
@@ -272,28 +354,73 @@ export async function generateLearningStrategyAPI(
       response = await generate(MODEL_LITE);
     }
     const data = JSON.parse(response.text || "{}");
-    return {
-      summary: data.summary,
-      suggestedAction: data.suggestedAction,
-      milestones: (data.milestones || []).map((m: any) => ({
-        title: m.title,
-        completed: false
-      }))
-    };
+    if (data && data.summary && data.milestones) {
+      return {
+        summary: data.summary,
+        suggestedAction: data.suggestedAction,
+        milestones: (data.milestones || []).map((m: any) => ({
+          title: m.title,
+          completed: false
+        }))
+      };
+    }
+    throw new Error("Invalid response format from model");
   } catch (err) {
-    console.error("Error generating strategy:", err);
-    return null;
+    console.warn("Error generating learning strategy, using dynamic local fallback:", err);
+    return generateStaticLearningStrategyFallback(profile, language);
   }
+}
+
+function generateStaticLearningStrategyFallback(profile: any, language: string) {
+  const isHinglish = language.toLowerCase() === 'hinglish';
+  const examConfig = getExamConfig(profile.exam);
+  const topics = profile.performance?.weakTopics?.length 
+    ? profile.performance.weakTopics 
+    : (examConfig?.defaultTopics || ["General Concept Core"]);
+  
+  const fallbackMilestones = topics.slice(0, 4).map((topic: string) => ({
+    title: isHinglish 
+      ? `Solve ${topic} formulas & real-world conceptual questions.`
+      : `Master ${topic}: Core formulas, theory, and high-frequency MCQs.`,
+    completed: false
+  }));
+  
+  if (fallbackMilestones.length < 3) {
+    fallbackMilestones.push({
+      title: isHinglish
+        ? "Solve high-speed 5-minute custom revision tests."
+        : "Attempt high-speed 5-minute revision drills.",
+      completed: false
+    });
+    fallbackMilestones.push({
+      title: isHinglish
+        ? "Analyze incorrect reviews with Mitra AI Coach."
+        : "Review tricky doubts using the 'Ask with AI' companion.",
+      completed: false
+    });
+  }
+
+  return {
+    summary: isHinglish 
+      ? `Aapka customized study milestones system ${profile.exam} syllabus par structured hai. Continuous learning se marks improve honge!`
+      : `Your study plan is tailored for the ${profile.exam} pattern. Dedicate focused revisions to see systematic progress!`,
+    suggestedAction: isHinglish 
+      ? `Focus on mastering ${topics[0] || 'core areas'} today with a focus mock drill.`
+      : `Complete a rapid practice test on ${topics[0] || 'core areas'} to build momentum.`,
+    milestones: fallbackMilestones
+  };
 }
 
 export async function updatePersonalisedProfileBackgroundAPI(
   profile: any,
   language: string = "Hinglish"
 ) {
-  if (!apiKey) return null;
+  if (!apiKey) {
+    return generateStaticBackgroundUpdateFallback(profile, language);
+  }
 
-  const weakTopics = profile.performance.weakTopics.join(", ");
-  const strongTopics = profile.performance.strongTopics.join(", ");
+  const weakTopics = profile.performance?.weakTopics?.join(", ") || "";
+  const strongTopics = profile.performance?.strongTopics?.join(", ") || "";
   const notes = profile.customStudyNotes || "None provided yet.";
   const exam = profile.exam;
   const milestones = profile.aiMentorPlan?.milestones || [];
@@ -342,15 +469,66 @@ export async function updatePersonalisedProfileBackgroundAPI(
     });
 
     const data = JSON.parse(response.text || "{}");
-    return {
-      summary: data.summary,
-      suggestedAction: data.suggestedAction,
-      milestones: data.milestones || []
-    };
+    if (data && data.summary && data.milestones) {
+      return {
+        summary: data.summary,
+        suggestedAction: data.suggestedAction,
+        milestones: data.milestones || []
+      };
+    }
+    throw new Error("Invalid response format from background model");
   } catch (err) {
-    console.error("Background personalization analysis failed:", err);
-    return null;
+    console.warn("Background personalization analysis failed, using dynamic local fallback:", err);
+    return generateStaticBackgroundUpdateFallback(profile, language);
   }
+}
+
+function generateStaticBackgroundUpdateFallback(profile: any, language: string) {
+  const isHinglish = language.toLowerCase() === 'hinglish';
+  const examConfig = getExamConfig(profile.exam);
+  const weakTopics = profile.performance?.weakTopics || [];
+  const topics = weakTopics.length ? weakTopics : (examConfig?.defaultTopics || ["Core Subjects"]);
+  const milestones = profile.aiMentorPlan?.milestones || [];
+  
+  // Keep completed milestones intact
+  const completedMilestones = milestones.filter((m: any) => m.completed);
+  
+  // Generate some high-quality fresh milestones
+  const newTitles = topics.slice(0, 3).map((topic: string) => 
+    isHinglish 
+      ? `Review ${topic} formulas and critical cases`
+      : `Analyze ${topic} foundational theorems and high-yield problems`
+  );
+  
+  newTitles.push(
+    isHinglish 
+      ? "Attempt a fresh balanced custom mock drill" 
+      : "Take a focused 5-minute customized mock drill"
+  );
+  newTitles.push(
+    isHinglish 
+      ? "Clarify 2 tricky questions with Mitra AI button" 
+      : "Use the 'Ask with AI' doubt solver on incorrect answers"
+  );
+
+  const activeNew = newTitles
+    .filter(t => !completedMilestones.some((m: any) => m.title.toLowerCase() === t.toLowerCase()))
+    .slice(0, Math.max(2, 5 - completedMilestones.length));
+
+  const finalMilestones = [
+    ...completedMilestones,
+    ...activeNew.map(t => ({ title: t, completed: false }))
+  ];
+
+  return {
+    summary: isHinglish 
+      ? `Aapka study board active hai! Milestones progress track ho rahi hai: ${completedMilestones.length} completed.`
+      : `Your study board is active! Keeping track of completed milestones: ${completedMilestones.length} done.`,
+    suggestedAction: isHinglish 
+      ? `Revise key sections in ${topics[0] || 'core areas'} to build confidence today.`
+      : `Work on ${topics[0] || 'your core subjects'} practice drills today to drive consistency.`,
+    milestones: finalMilestones
+  };
 }
 
 export async function chatWithMitraAPI(

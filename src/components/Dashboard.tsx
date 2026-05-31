@@ -3,6 +3,7 @@ import { Target, TrendingUp, AlertTriangle, Calendar, ArrowRight, Zap, Sparkles,
 import { UserProfile, Topic } from '../types';
 import { getExamConfig } from '../data/examsConfig';
 import AILearningDesk from './AILearningDesk';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface DashboardProps {
   profile: UserProfile;
@@ -163,6 +164,21 @@ export default function Dashboard({
           </div>
         </div>
 
+        {/* AI Expert Insight Card */}
+        {profile.performance.lastAiAnalysis && (
+          <div className="md:col-span-12 bento-card border-brand/20 bg-brand/5">
+            <div className="flex items-center gap-2 text-brand text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+              <Sparkles className="w-4 h-4" /> Smart Guide • Preparation Strategy
+            </div>
+            <div>
+              <h4 className="text-xl font-bold mb-2 text-white">{profile.performance.lastAiAnalysis.summary}</h4>
+              <div className="text-slate-400 text-sm leading-relaxed">
+                <MarkdownRenderer text={profile.performance.lastAiAnalysis.weakTopicAnalysis} />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Personalized AI Learning Desk */}
         <div className="md:col-span-12">
           <AILearningDesk 
@@ -251,33 +267,6 @@ export default function Dashboard({
             {history.length === 0 && <div className="col-span-2 text-center py-12 text-slate-500 font-bold uppercase text-[10px] tracking-[0.3em] opacity-40">No records found • System idle</div>}
           </div>
         </div>
-
-        {/* AI Expert Insight Card */}
-        {profile.performance.lastAiAnalysis && (
-          <div className="md:col-span-12 bento-card border-brand/20 bg-brand/5">
-            <div className="flex items-center gap-2 text-brand text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-              <Sparkles className="w-4 h-4" /> Smart Guide • Preparation Strategy
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="md:col-span-2">
-                <h4 className="text-xl font-bold mb-2 text-white">{profile.performance.lastAiAnalysis.summary}</h4>
-                <p className="text-slate-400 text-sm leading-relaxed">{profile.performance.lastAiAnalysis.weakTopicAnalysis}</p>
-              </div>
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 block">Recommended Focus</span>
-                <p className="text-xs text-brand font-medium italic">"{profile.performance.lastAiAnalysis.predictedBrief}"</p>
-                <div className="mt-4 pt-4 border-t border-white/5">
-                   <button 
-                    onClick={onStartTest}
-                    className="w-full py-2 bg-brand/10 hover:bg-brand/20 text-brand text-[10px] font-black uppercase rounded-lg transition-colors"
-                   >
-                     Start Revision Test
-                   </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
 
