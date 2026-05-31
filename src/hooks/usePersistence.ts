@@ -343,17 +343,10 @@ export function usePersistence() {
     setAuthLoading(true);
     try {
       const userObj = await signInWithGoogle();
-      
-      // Load or initialize documents
-      const fsProfile = await getUserProfileFromFirestore(userObj.uid);
-      const fsTests = await getTestResultsFromFirestore(userObj.uid);
-
-      // Merge current local guest profile with retrieved cloud profile
-      const mergedProfile = await mergeGuestWithCloudAndSave(userObj, fsProfile, fsTests || [], profile);
-      
+      // OnAuthStateChanged listener will automatically pick up this change,
+      // load from firestore, merge with local current guest, save, and update the profile state.
       setFirebaseUser(userObj);
-      setProfile(mergedProfile);
-      return mergedProfile;
+      return userObj;
     } catch (err: any) {
       const errMsg = err?.message || String(err);
       if (errMsg.includes("popup-closed-by-user") || errMsg.includes("auth/closed-by-user")) {

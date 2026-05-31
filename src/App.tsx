@@ -9,7 +9,7 @@ import DrillSetupModal from './components/DrillSetupModal';
 import AccountModal from './components/AccountModal';
 import { usePersistence } from './hooks/usePersistence';
 import { QUESTIONS } from './data/questions';
-import { generateQuestionsAPI, analyzePerformanceAPI } from './services/api';
+import { generateQuestionsAPI, analyzePerformanceAPI, updatePersonalisedProfileBackgroundAPI } from './services/api';
 import { Topic, Question, DrillSetup } from './types';
 import { Loader2, Download, Smartphone, Share2, X, Sparkles, Zap, ShieldAlert, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -96,74 +96,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDrillSetupOpen, setIsDrillSetupOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
-  
-  // PWA states
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstalled, setIsInstalled] = useState(() => {
-    return window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
-  });
-  const [showInstallBanner, setShowInstallBanner] = useState(() => {
-    return sessionStorage.getItem('dismiss_pwa_banner') !== 'true';
-  });
-  const [showGuideModal, setShowGuideModal] = useState(false);
-
-  // Auto-detect beforeinstallprompt and check installation status
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('beforeinstallprompt fired! PWA is installable.');
-      e.preventDefault();
-      setDeferredPrompt(e);
-      
-      const dismissed = sessionStorage.getItem('dismiss_pwa_banner') === 'true';
-      if (!dismissed) {
-        setShowInstallBanner(true);
-      }
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Track real-time standalone media transitions
-    const mediaQuery = window.matchMedia('(display-mode: standalone)');
-    const handleMediaChange = (e: MediaQueryListEvent) => {
-      setIsInstalled(e.matches);
-    };
-    mediaQuery.addEventListener('change', handleMediaChange);
-
-    // Detect if app is installed successfully
-    const handleAppInstalled = () => {
-      console.log('App successfully installed!');
-      setIsInstalled(true);
-      setShowInstallBanner(false);
-    };
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      mediaQuery.removeEventListener('change', handleMediaChange);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      try {
-        console.log('Triggering browser install prompt...');
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User outcome: ${outcome}`);
-        if (outcome === 'accepted') {
-          setDeferredPrompt(null);
-          setShowInstallBanner(false);
-        }
-      } catch (err) {
-        console.error('Error during installation choice:', err);
-      }
-    } else {
-      // Show manual fallback guide if automatic trigger isn't available
-      setShowGuideModal(true);
-    }
-  };
-
 
   const viewTestResult = (result: any) => {
     setLastResults(result);
@@ -201,7 +133,8 @@ export default function App() {
         profile.performance,
         setup,
         profile.customExamDetails,
-        profile.language
+        profile.language,
+        profile.aiMentorPlan?.milestones
       );
 
       if (generatedQuestions.length > 0) {
@@ -266,14 +199,82 @@ export default function App() {
     setAiAnalysis(analysis);
     
     // Save test results with AI analysis to profile (only call this once)
-    addTestResult(testData, analysis);
+    await addTestResult(testData, analysis);
+
+    // Run lightning-fast background distillation after mock completes
+    setTimeout(async () => {
+      try {
+        const latestProfile = {
+          ...profile,
+          performance: {
+            ...profile.performance,
+            testHistory: [...profile.performance.testHistory, testData],
+          }
+        };
+        const updatedPlan = await updatePersonalisedProfileBackgroundAPI(latestProfile, profile.language);
+        if (updatedPlan) {
+          updateProfile({
+            aiMentorPlan: {
+              summary: updatedPlan.summary,
+              suggestedAction: updatedPlan.suggestedAction,
+              milestones: updatedPlan.milestones,
+              lastStructuredDate: new Date().toLocaleDateString()
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Failed to background personalize after test completion:", err);
+      }
+    }, 1200);
   };
 
 
 
-  const handleOnboardingComplete = (name: string, exam: string, language: string, customExamDetails?: string) => {
-    updateProfile({ name, exam, language, customExamDetails, onboarded: true });
-    setAppState('dashboard');
+  const handleOnboardingComplete = async (name: string, exam: string, language: string, customExamDetails?: string) => {
+    setIsLoading(true);
+    try {
+      const initialProfile = {
+        name,
+        exam,
+        language,
+        customExamDetails,
+        onboarded: true
+      };
+      await updateProfile(initialProfile);
+
+      const tempProfile = {
+        name,
+        exam,
+        language,
+        customExamDetails,
+        performance: {
+          weakTopics: [],
+          strongTopics: [],
+          testHistory: [],
+          knowledgeProfile: {},
+          streak: 0
+        },
+        customStudyNotes: ""
+      };
+
+      // Instantly generate and fill structured milestones roadmap upon onboarding
+      const initialPlan = await updatePersonalisedProfileBackgroundAPI(tempProfile, language);
+      if (initialPlan) {
+        await updateProfile({
+          aiMentorPlan: {
+            summary: initialPlan.summary,
+            suggestedAction: initialPlan.suggestedAction,
+            milestones: initialPlan.milestones,
+            lastStructuredDate: new Date().toLocaleDateString()
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Auto roadmap initialization error:", err);
+    } finally {
+      setIsLoading(false);
+      setAppState('dashboard');
+    }
   };
 
   if (authLoading) {
@@ -296,7 +297,6 @@ export default function App() {
           onProfileClick={() => setAppState('dashboard')} 
           onAccountClick={() => setIsAccountModalOpen(true)}
           onLogout={handleLogout}
-          onInstallClick={isInstalled ? undefined : handleInstallClick}
           firebaseUser={firebaseUser}
           onLoginWithGoogle={handleLoginWithGoogle}
         />
@@ -341,7 +341,6 @@ export default function App() {
             onStartTest={() => setIsDrillSetupOpen(true)} 
             onStartTopicTest={(topic) => startNewTest(undefined, [topic])}
             onViewResult={viewTestResult}
-            onInstallClick={isInstalled ? undefined : handleInstallClick}
             onUpdateProfile={updateProfile}
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
           />
@@ -380,201 +379,6 @@ export default function App() {
               onNextTest={() => startNewTest()}
             />
         )}
-
-        {/* Glowing PWA Install Popup Banner */}
-        <AnimatePresence>
-          {showInstallBanner && !isInstalled && (appState === 'landing' || appState === 'onboarding') && (
-            <motion.div 
-              initial={{ y: 80, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-[420px] z-40 pointer-events-auto"
-            >
-              <div className="relative overflow-hidden rounded-3xl bg-[#12151C] border border-brand/50 p-6 shadow-[0_0_35px_rgba(37,99,235,0.3)]">
-                {/* Ambient glowing radial blur */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-brand/20 blur-[40px] rounded-full -mr-12 -mt-12 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/10 blur-[30px] rounded-full -ml-8 -mb-8 pointer-events-none"></div>
-                
-                <button 
-                  onClick={() => {
-                    setShowInstallBanner(false);
-                    sessionStorage.setItem('dismiss_pwa_banner', 'true');
-                  }}
-                  className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-                  title="Close"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-
-                <div className="flex gap-4">
-                  <div className="p-3 bg-brand/10 border border-brand/20 rounded-2xl text-brand-light flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(37,99,235,0.15)] animate-pulse">
-                    <Sparkles className="w-6 h-6 text-brand-light fill-current" />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <span className="inline-block px-2.5 py-0.5 bg-brand/25 border border-brand/40 rounded-full text-brand-light text-[8px] font-black uppercase tracking-wider mb-2">
-                       CFO Recommended PWA
-                    </span>
-                    <h3 className="text-base font-black text-white leading-tight tracking-tight mb-1">
-                      Install Mock-Mitra in 1-Click
-                    </h3>
-                    <h4 className="text-xs font-bold text-brand-light mb-2">
-                      (Save Space & Internet)
-                    </h4>
-                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-                      Access custom simulators instantly offline, lower battery drain, and practice anywhere on Android, iOS, or PC!
-                    </p>
-                    
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleInstallClick}
-                        className="px-4 py-2.5 bg-brand hover:bg-brand-light text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
-                      >
-                        <Zap className="w-3.5 h-3.5 fill-current animate-bounce" /> Install Now
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowInstallBanner(false);
-                          sessionStorage.setItem('dismiss_pwa_banner', 'true');
-                        }}
-                        className="px-3 py-2.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-[10px] font-bold rounded-xl transition-colors cursor-pointer"
-                      >
-                        Maybe Later
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* PWA Install Guide Modal (Fallback) */}
-        <AnimatePresence>
-          {showGuideModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" id="pwa-guide-modal">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full max-w-md bg-[#12151C] border border-slate-800 rounded-3xl p-6 shadow-2xl relative"
-              >
-                <button 
-                  onClick={() => setShowGuideModal(false)}
-                  className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2.5 bg-brand/10 border border-brand/20 rounded-xl text-brand-light flex items-center justify-center">
-                    <Smartphone className="w-6 h-6 text-brand-light" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-white">Install Mock-Mitra</h3>
-                    <p className="text-xs text-slate-400">Save Space • Sync Offline • Super Fast</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4 my-4 py-2 border-y border-white/5">
-                  <div className="bg-brand/5 border border-brand/20 rounded-2xl p-4 mb-3">
-                    <p className="text-xs font-bold text-brand-light flex items-center gap-1.5 uppercase tracking-wider mb-1">
-                      💡 Pro Tip
-                    </p>
-                    <p className="text-xs text-slate-300">
-                      Mock-Mitra runs as a lightweight Progressive Web App. It consumes zero extra disk space and works with limited internet!
-                    </p>
-                  </div>
-
-                  {/* iOS Safari Guide Section */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest text-[10px]">For Apple / Safari (iOS)</h4>
-                    <ol className="list-decimal list-inside text-xs text-slate-300 space-y-2 pl-1">
-                      <li>Tap the <span className="text-brand-light font-bold">Share</span> button (the square icon with arrow up <Share2 className="w-3.5 h-3.5 inline-block mx-1 leading-none text-brand-light" />) in the browser bottom bar.</li>
-                      <li>Scroll up/down and choose <span className="text-brand-light font-bold">"Add to Home Screen"</span>.</li>
-                      <li>Click <span className="text-brand-light font-bold">Add</span> in the top right corner.</li>
-                    </ol>
-                  </div>
-
-                  {/* Android Chrome Guide Section */}
-                  <div className="space-y-3 pt-2">
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest text-[10px]">For Android & PC Chrome</h4>
-                    <ol className="list-decimal list-inside text-xs text-slate-300 space-y-2 pl-1">
-                      <li>Tap the browser context menu button (<span className="text-white font-bold">three vertical dots ...</span>) in the bar.</li>
-                      <li>Select <span className="text-brand-light font-bold">"Install App"</span> or <span className="text-brand-light font-bold">"Add to Home Screen"</span>.</li>
-                      <li>Confirm the installer confirmation modal.</li>
-                    </ol>
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <button 
-                    onClick={() => setShowGuideModal(false)}
-                    className="w-full py-3 bg-brand hover:bg-brand-light text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/20 transition-all cursor-pointer"
-                  >
-                    Got It, Let's Do It
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {/* Global Google Auth Error Banner with Hinglish Instructions */}
-        <AnimatePresence>
-          {authError && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed bottom-6 left-4 right-4 md:left-6 md:right-auto md:max-w-md z-50 pointer-events-auto"
-            >
-              <div className="relative overflow-hidden rounded-2xl bg-[#140b0f] border border-rose-500/30 p-5 shadow-[0_0_25px_rgba(244,63,94,0.15)] flex gap-3">
-                <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 shrink-0 self-start">
-                  <ShieldAlert className="w-5 h-5 text-rose-400 animate-pulse" />
-                </div>
-                
-                <div className="flex-1 min-w-0 font-sans">
-                  <h4 className="text-xs font-black uppercase text-rose-300 tracking-wider">
-                    {authError.type === 'popup-blocked' ? 'Google Popup Blocked!' : 'Google Sync Alert'}
-                  </h4>
-                  <p className="text-[11px] text-slate-300 leading-relaxed mt-1 font-medium select-none">
-                    {authError.message}
-                  </p>
-                  
-                  <div className="mt-3.5 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setAuthError(null)}
-                      className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white font-extrabold text-[9px] uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
-                    >
-                      Bypass (Guest Mode Chalu Rakhein)
-                    </button>
-                    {authError.type === 'popup-blocked' && (
-                      <a
-                        href={window.location.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-3 py-1.5 bg-rose-500/25 hover:bg-rose-500/40 text-rose-200 border border-rose-500/30 font-extrabold text-[9px] uppercase tracking-wider rounded-lg transition-all flex items-center gap-1 cursor-pointer"
-                      >
-                        Open In New Tab <ExternalLink className="w-2.5 h-2.5" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => setAuthError(null)}
-                  className="sm:absolute top-3 right-3 p-1 text-slate-500 hover:text-white rounded-md transition-colors cursor-pointer"
-                  title="Close Alert"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </main>
     </div>
   );

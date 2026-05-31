@@ -281,44 +281,6 @@ export default function Dashboard({
 
       </div>
 
-      {onInstallClick && (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-8 border border-white/10 dark:border-brand/35 bg-gradient-to-r from-slate-900/40 via-brand/10 to-slate-950/40 rounded-3xl p-6 relative overflow-hidden shadow-[0_0_25px_rgba(37,99,235,0.2)] flex flex-col md:flex-row items-center justify-between gap-6 group"
-        >
-          {/* Pulsing neon accent lights */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-brand/20 blur-[100px] rounded-full -mr-32 -mt-32"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand/10 blur-[80px] rounded-full -ml-16 -mb-16"></div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
-            <div className="w-14 h-14 bg-gradient-to-tr from-brand to-indigo-600 rounded-2xl flex items-center justify-center border border-white/20 shadow-[0_0_20px_rgba(37,99,235,0.4)] animate-pulse shrink-0">
-              <Sparkles className="text-white w-7 h-7 fill-current" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1.5">
-                <span className="px-2.5 py-0.5 bg-brand/20 border border-brand/30 rounded-full text-brand-light text-[8px] font-black uppercase tracking-wider">PWA Simulator</span>
-                <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-[8px] font-black uppercase tracking-wider">CFO Recommended</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
-                Install Mock-Mitra in 1-Click <span className="text-brand-light font-display font-medium block sm:inline">(Save Space & Internet)</span>
-              </h2>
-              <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl">
-                Get lightning-fast response times, access the interface with limited internet, and launch directly from your mobile dock or desktop screen.
-              </p>
-            </div>
-          </div>
-          
-          <div className="relative z-10 shrink-0 w-full md:w-auto">
-            <button 
-              onClick={onInstallClick}
-              className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-brand hover:bg-brand-light text-white font-black rounded-2xl shadow-xl shadow-brand/30 hover:shadow-brand-light transition-all active:scale-95 uppercase tracking-widest text-xs cursor-pointer group-hover:scale-105"
-            >
-              Install App <Zap className="w-4 h-4 fill-current animate-bounce" />
-            </button>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }

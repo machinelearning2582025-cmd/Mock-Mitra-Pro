@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Target, User, LogOut, Download } from 'lucide-react';
+import { Target, User, LogOut } from 'lucide-react';
 import Logo from './Logo';
 
 interface NavbarProps {
@@ -7,7 +7,6 @@ interface NavbarProps {
   onAccountClick?: () => void;
   userName?: string;
   onLogout?: () => void;
-  onInstallClick?: () => void;
   firebaseUser?: any;
   onLoginWithGoogle?: () => Promise<any>;
 }
@@ -17,7 +16,6 @@ export default function Navbar({
   onAccountClick, 
   userName, 
   onLogout, 
-  onInstallClick,
   firebaseUser,
   onLoginWithGoogle
 }: NavbarProps) {
@@ -34,15 +32,6 @@ export default function Navbar({
         </div>
 
         <div className="flex items-center gap-3 sm:gap-6">
-          {onInstallClick && !userName && (
-            <button
-              onClick={onInstallClick}
-              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-brand to-indigo-600 border border-white/10 hover:from-white/10 hover:to-indigo-500 text-white font-black rounded-xl shadow-[0_0_15px_rgba(37,99,235,0.35)] hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] active:scale-95 transition-all uppercase tracking-widest text-[9px] sm:text-[10px] cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <Download className="w-3" />
-              <span>Install App</span>
-            </button>
-          )}
 
           {userName && (
             <div className="hidden lg:flex items-center space-x-10 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">

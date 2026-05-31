@@ -75,7 +75,8 @@ export async function generateQuestionsAPI(
   userPerformance?: UserPerformance,
   customSetup?: DrillSetup,
   customExamDetails?: string,
-  language: string = "English"
+  language: string = "English",
+  milestones?: { title: string; completed: boolean }[]
 ): Promise<Question[]> {
   if (!apiKey) return [];
 
@@ -92,6 +93,21 @@ export async function generateQuestionsAPI(
     : "";
   const strongTopicsContext = userPerformance?.strongTopics.length 
     ? `The user is strong in: ${userPerformance.strongTopics.join(", ")}. Ensure questions are challenging enough.`
+    : "";
+
+  const completedMilestones = milestones
+    ?.filter(m => m.completed)
+    .map(m => m.title)
+    .join(", ") || "";
+  const remainingMilestones = milestones
+    ?.filter(m => !m.completed)
+    .map(m => m.title)
+    .join(", ") || "";
+
+  const milestonesContext = completedMilestones || remainingMilestones
+    ? `STUDY ROADMAP PROGRESSIVE DETAILS (IMPORTANT CUSTOM TARGETS):
+       - Recently mastered / studied chapter ticks (generate 1-2 recall/application questions here to hone active recall): ${completedMilestones || "None yet"}
+       - Active/remaining focus milestones to test and build deep knowledge: ${remainingMilestones || "None yet"}`
     : "";
 
   const customText = customSetup?.customPrompt ? `USER SPECIFIC DRILL REQUEST: ${customSetup.customPrompt}` : "";
@@ -114,6 +130,7 @@ export async function generateQuestionsAPI(
         
         ${weakTopicsContext}
         ${strongTopicsContext}
+        ${milestonesContext}
         ${customText}
         ${videoContext}
 
@@ -265,6 +282,73 @@ export async function generateLearningStrategyAPI(
     };
   } catch (err) {
     console.error("Error generating strategy:", err);
+    return null;
+  }
+}
+
+export async function updatePersonalisedProfileBackgroundAPI(
+  profile: any,
+  language: string = "Hinglish"
+) {
+  if (!apiKey) return null;
+
+  const weakTopics = profile.performance.weakTopics.join(", ");
+  const strongTopics = profile.performance.strongTopics.join(", ");
+  const notes = profile.customStudyNotes || "None provided yet.";
+  const exam = profile.exam;
+  const milestones = profile.aiMentorPlan?.milestones || [];
+
+  const prompt = `
+    Analyze student ${profile.name} who is preparing for ${exam}.
+    Weak topics: ${weakTopics || "None tracked yet"}.
+    Strong topics: ${strongTopics || "None tracked yet"}.
+    Personal study notes & focus areas: "${notes}".
+    Current checklist/milestones: ${JSON.stringify(milestones)}.
+    Language preference: ${language}.
+
+    Task: Run lightweight fast background distillation of the learning roadmap and status.
+    1. Keep any milestones marked as "completed: true" completely INTACT in your output list. Do not delete them.
+    2. Review the remaining unchecked milestones. Revise / update these remaining milestones to generate a total list of 4-6 specific visual study checklist tasks (atomic, highly concrete chapters/concepts/formulas) relevant to their current strengths and weak focus areas.
+    3. Formulate a 2-sentence extremely encouraging AI mentor plan recommendation.
+    Provide output ONLY as JSON matching the requested schema. Ensure titles and recommendation are in ${profile.language || language}. If Hinglish, use a mixed Hindi/English style.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: MODEL_LITE, // Run lightning-fast on flash lite in background
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            summary: { type: Type.STRING },
+            suggestedAction: { type: Type.STRING },
+            milestones: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  completed: { type: Type.BOOLEAN }
+                },
+                required: ["title", "completed"]
+              }
+            }
+          },
+          required: ["summary", "suggestedAction", "milestones"]
+        }
+      }
+    });
+
+    const data = JSON.parse(response.text || "{}");
+    return {
+      summary: data.summary,
+      suggestedAction: data.suggestedAction,
+      milestones: data.milestones || []
+    };
+  } catch (err) {
+    console.error("Background personalization analysis failed:", err);
     return null;
   }
 }
