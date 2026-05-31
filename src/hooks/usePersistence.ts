@@ -351,9 +351,25 @@ export function usePersistence() {
     setAuthLoading(true);
     try {
       const userObj = await signInWithGoogle();
-      // OnAuthStateChanged listener will automatically pick up this change,
-      // load from firestore, merge with local current guest, save, and update the profile state.
       setFirebaseUser(userObj);
+
+      // Explicitly fetch and merge cloud profile instantly to guarantee UI remains in secure loading state
+      const fsProfile = await getUserProfileFromFirestore(userObj.uid);
+      const fsTests = await getTestResultsFromFirestore(userObj.uid);
+
+      let currentGuest: UserProfile = INITIAL_PROFILE;
+      try {
+        const savedRaw = localStorage.getItem(STORAGE_KEY);
+        if (savedRaw) {
+          currentGuest = JSON.parse(savedRaw);
+        }
+      } catch (e) {
+        console.error("Local storage lookup failed inside loginWithGoogle", e);
+      }
+
+      const mergedProfile = await mergeGuestWithCloudAndSave(userObj, fsProfile, fsTests || [], currentGuest);
+      setProfile(mergedProfile);
+
       return userObj;
     } catch (err: any) {
       const errMsg = err?.message || String(err);

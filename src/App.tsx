@@ -34,6 +34,7 @@ export default function App() {
 
   const handleLoginWithGoogle = async () => {
     setAuthError(null);
+    setIsLoading(true);
     try {
       const res = await loginWithGoogle();
       return res;
@@ -62,6 +63,8 @@ export default function App() {
         });
       }
       throw err;
+    } finally {
+      setIsLoading(false);
     }
   };
 
