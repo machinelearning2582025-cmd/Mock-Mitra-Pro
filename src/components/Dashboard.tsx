@@ -14,6 +14,8 @@ interface DashboardProps {
   onUpdateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   onStartCustomDrill: (prompt: string) => void;
   showInstallButton?: boolean;
+  onClearTestHistory?: () => void;
+  onClearChatHistory?: () => void;
 }
 
 export default function Dashboard({ 
@@ -24,7 +26,9 @@ export default function Dashboard({
   onInstallClick,
   onUpdateProfile,
   onStartCustomDrill,
-  showInstallButton = true
+  showInstallButton = true,
+  onClearTestHistory,
+  onClearChatHistory
 }: DashboardProps) {
   const history = profile.performance.testHistory;
   const examConfig = getExamConfig(profile.exam);
@@ -206,6 +210,7 @@ export default function Dashboard({
             profile={profile}
             onUpdateProfile={onUpdateProfile}
             onStartCustomDrill={onStartCustomDrill}
+            onClearChatHistory={onClearChatHistory}
           />
         </div>
 
@@ -259,6 +264,19 @@ export default function Dashboard({
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Timeline of saved mock sessions</p>
             </div>
             <div className="flex items-center gap-2">
+               {history.length > 0 && onClearTestHistory && (
+                 <button
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     if (window.confirm("Bhaiya, kya aap sachme sabhi purane practice test results ki history clean karna chahte hain? Sabhi stats dobara reset ho jayenge.")) {
+                       onClearTestHistory();
+                     }
+                   }}
+                   className="text-[9px] font-black text-rose-300 hover:text-white uppercase tracking-widest bg-rose-950/20 hover:bg-rose-900/60 transition-all px-3 py-1.5 rounded-lg border border-rose-500/15 cursor-pointer"
+                 >
+                   Clear History 🗑️
+                 </button>
+               )}
                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest bg-slate-900 px-3 py-1.5 rounded-lg border border-white/5">Auto-Saved</span>
             </div>
           </div>

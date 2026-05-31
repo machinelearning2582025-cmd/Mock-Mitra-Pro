@@ -15,7 +15,8 @@ import {
   getDocs,
   query,
   limit,
-  getDocFromServer
+  getDocFromServer,
+  deleteDoc
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { UserProfile, TestResult, Topic } from '../types';
@@ -136,5 +137,26 @@ export async function getTestResultsFromFirestore(uid: string): Promise<TestResu
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, `users/${uid}/tests`);
     return [];
+  }
+}
+
+export async function deleteTestResultsFromFirestore(uid: string): Promise<void> {
+  const testsCollRef = collection(db, 'users', uid, 'tests');
+  try {
+    const qSnap = await getDocs(testsCollRef);
+    for (const docSnap of qSnap.docs) {
+      await deleteDoc(doc(db, 'users', uid, 'tests', docSnap.id));
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}/tests`);
+  }
+}
+
+export async function deleteUserProfileFromFirestore(uid: string): Promise<void> {
+  const userDocRef = doc(db, 'users', uid);
+  try {
+    await deleteDoc(userDocRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `users/${uid}`);
   }
 }

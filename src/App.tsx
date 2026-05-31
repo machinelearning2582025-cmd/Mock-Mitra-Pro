@@ -26,7 +26,10 @@ export default function App() {
     addTestResult, 
     updateTestResultWithAnalysis,
     loginWithGoogle,
-    logout 
+    logout,
+    clearChatHistory,
+    clearTestHistory,
+    resetAccountData
   } = usePersistence();
   
   const [appState, setAppState] = useState<AppState>('landing');
@@ -425,6 +428,8 @@ export default function App() {
             onUpdateProfile={updateProfile}
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
             showInstallButton={!isPWAInstalled}
+            onClearTestHistory={clearTestHistory}
+            onClearChatHistory={clearChatHistory}
           />
         )}
 

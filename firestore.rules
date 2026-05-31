@@ -51,13 +51,11 @@ service cloud.firestore {
 
     // Users collection match block
     match /users/{userId} {
-      allow get, create, update: if isOwner(userId);
-      allow delete: if false; // Users cannot be deleted from Client SDK
+      allow get, create, update, delete: if isOwner(userId);
 
       // Subcollection for isolated test results
       match /tests/{testId} {
-        allow get, list, create, update: if isOwner(userId);
-        allow delete: if false;
+        allow get, list, create, update, delete: if isOwner(userId);
       }
     }
   }

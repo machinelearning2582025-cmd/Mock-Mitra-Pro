@@ -9,9 +9,15 @@ interface AILearningDeskProps {
   profile: UserProfile;
   onUpdateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   onStartCustomDrill: (prompt: string) => void;
+  onClearChatHistory?: () => void;
 }
 
-export default function AILearningDesk({ profile, onUpdateProfile, onStartCustomDrill }: AILearningDeskProps) {
+export default function AILearningDesk({ 
+  profile, 
+  onUpdateProfile, 
+  onStartCustomDrill,
+  onClearChatHistory
+}: AILearningDeskProps) {
   const [activeTab, setActiveTab] = useState<'strategy' | 'mentor'>('strategy');
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
   const [chatIn, setChatIn] = useState('');
@@ -27,6 +33,23 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
       }
     ]
   );
+
+  // Keep local messages in sync with profile's chatHistory (vital for clear/reset triggers)
+  useEffect(() => {
+    if (profile.chatHistory) {
+      if (profile.chatHistory.length === 0) {
+        setChatMessages([
+          {
+            role: 'model',
+            text: `Namaste **${profile.name}**! Main aapka AI Mentor Mitra hoon. \n\nAap jis bhi topic ya concept me comfortable feel nahi kar rahe hain, mujhe batayein. Main aapki target performance aur dynamic weak areas ko focus karke revision tips, active recall strategies aur guidance provide karunga.`,
+            date: new Date().toISOString()
+          }
+        ]);
+      } else {
+        setChatMessages(profile.chatHistory);
+      }
+    }
+  }, [profile.chatHistory, profile.name]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -306,6 +329,24 @@ export default function AILearningDesk({ profile, onUpdateProfile, onStartCustom
               exit={{ opacity: 0, scale: 0.98 }}
               className="flex flex-col h-full justify-between py-2"
             >
+              <div className="flex items-center justify-between border-b border-white/5 pb-2.5 mb-2.5 shrink-0">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-sans">
+                  Mitra AI Session Active ⚡
+                </span>
+                {chatMessages.length > 1 && onClearChatHistory && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Mitra AI chat history clear karein? (purani saari conversations delete ho jayengi)")) {
+                        onClearChatHistory();
+                      }
+                    }}
+                    className="text-[9px] font-bold text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/15 px-2.5 py-1 rounded-lg transition-all cursor-pointer uppercase tracking-wider font-sans"
+                  >
+                    Clear Chat 🗑️
+                  </button>
+                )}
+              </div>
+
               {/* Chat Display Box - Raised height to approx 80% display height for beautiful mobile layout */}
               <div 
                 ref={scrollRef}

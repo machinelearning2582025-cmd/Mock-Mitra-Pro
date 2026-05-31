@@ -9,7 +9,9 @@ import {
   saveTestResultToFirestore, 
   getTestResultsFromFirestore, 
   signInWithGoogle, 
-  logOutFromFirebase 
+  logOutFromFirebase,
+  deleteTestResultsFromFirestore,
+  deleteUserProfileFromFirestore
 } from '../services/firebase';
 
 const STORAGE_KEY = 'mockmitra_profile';
@@ -434,6 +436,88 @@ export function usePersistence() {
     });
   }, [firebaseUser]);
 
+  // Clear chat history handler
+  const clearChatHistory = useCallback(async () => {
+    setProfile((prev) => {
+      const updated = {
+        ...prev,
+        chatHistory: []
+      };
+      
+      if (firebaseUser) {
+        saveUserProfileToFirestore(firebaseUser.uid, {
+          chatHistory: [],
+          updatedAt: new Date().toISOString()
+        } as any).catch(e => console.error("Firestore chatHistory clear failed:", e));
+      }
+      return updated;
+    });
+  }, [firebaseUser]);
+
+  // Clear test/practice history handler
+  const clearTestHistory = useCallback(async () => {
+    setProfile((prev) => {
+      const updatedPerformance = {
+        strongTopics: [],
+        weakTopics: [],
+        testHistory: [],
+        streak: 0,
+        knowledgeProfile: {},
+        lastAiAnalysis: undefined
+      };
+      const updated = {
+        ...prev,
+        performance: updatedPerformance,
+        aiMentorPlan: undefined
+      };
+
+      if (firebaseUser) {
+        deleteTestResultsFromFirestore(firebaseUser.uid).catch(e => console.error("Firestore test history delete failed:", e));
+
+        saveUserProfileToFirestore(firebaseUser.uid, {
+          streak: 0,
+          strongTopics: [],
+          weakTopics: [],
+          knowledgeProfile: {},
+          lastAiAnalysis: null,
+          aiMentorPlan: null,
+          updatedAt: new Date().toISOString()
+        } as any).catch(e => console.error("Firestore test history clear failed:", e));
+      }
+
+      return updated;
+    });
+  }, [firebaseUser]);
+
+  // Complete account reset handler
+  const resetAccountData = useCallback(async () => {
+    const uid = firebaseUser?.uid;
+    
+    // 1. If logged in, first delete from Firestore and then sign out
+    if (uid) {
+      try {
+        await deleteTestResultsFromFirestore(uid);
+      } catch (e) {
+        console.error("Firestore test history deletion failed during reset:", e);
+      }
+      try {
+        await deleteUserProfileFromFirestore(uid);
+      } catch (e) {
+        console.error("Firestore user profile deletion failed during reset:", e);
+      }
+      try {
+        await logOutFromFirebase();
+      } catch (e) {
+        console.error("Log out failed during reset:", e);
+      }
+    }
+
+    // 2. Clear local storage and reset local state
+    localStorage.removeItem(STORAGE_KEY);
+    setProfile(INITIAL_PROFILE);
+    setFirebaseUser(null);
+  }, [firebaseUser]);
+
   return { 
     profile, 
     firebaseUser,
@@ -442,6 +526,9 @@ export function usePersistence() {
     addTestResult,
     updateTestResultWithAnalysis,
     loginWithGoogle,
-    logout 
+    logout,
+    clearChatHistory,
+    clearTestHistory,
+    resetAccountData
   };
 }
