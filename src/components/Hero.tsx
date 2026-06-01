@@ -23,14 +23,13 @@ export default function Hero({ onStart, onStartGoogle, onInstallClick, showInsta
             <div className="absolute top-0 right-0 w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] bg-brand/10 blur-[100px] sm:blur-[120px] rounded-full -mr-40 -mt-40"></div>
             <div className="z-10">
               <span className="inline-block px-3 py-1 bg-brand/10 border border-brand/20 rounded-full text-brand text-[10px] font-black uppercase tracking-widest mb-6 leading-none">
-                AI-Powered Adaptive Mock Tests
+                The 20-Minute Study Revolution ⚡
               </span>
               <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white leading-[1.05] mb-6 tracking-tight text-pretty">
-                Master Any <br/> Exam Today.
+                Your Exam. <br/>Our Strategy. <br/>Only 20 Mins.
               </h1>
               <p className="text-slate-400 text-base sm:text-lg max-w-xl mb-10 leading-relaxed">
-                MockMitra is the ultimate practice engine for students, professionals, and lifelong learners. 
-                Adaptive tests, deep analytics, and personalized feedback for any subject or certification.
+                Crack any exam with Mock-Mitra-Pro's daily high-yield active recall simulator. No tech-larping, pure focus. Optimized for Indian competitive exams (SSC, Banking, Railways) and custom topics.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
@@ -95,7 +94,7 @@ export default function Hero({ onStart, onStartGoogle, onInstallClick, showInsta
                   <Smartphone className="w-5 h-5 flex animate-pulse" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-white uppercase tracking-wider">Install MockMitra as App 📱</h4>
+                  <h4 className="text-sm font-black text-white uppercase tracking-wider">Install Mock-Mitra-Pro as App 📱</h4>
                   <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">Apne mobile par shortcut aur super-fast experience ke liye direct Add to Home Screen/Install karein!</p>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 {
-  "name": "Mock Mitra",
-  "description": "An AI-powered mock exam preparation and practice simulator for various competitive exams.",
+  "name": "Mock-Mitra-Pro",
+  "description": "Crack any exam with just 20 minutes of daily high-yield micro-learning. Your Exam, Our Strategy. No Tech-Larping, Pure Focus.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

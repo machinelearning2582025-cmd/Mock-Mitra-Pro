@@ -25,8 +25,8 @@ export default function Navbar({
         <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => onProfileClick?.()}>
           <Logo className="w-10 h-10 hover:scale-105 transition-transform" />
           <div className="flex flex-col">
-            <span className="text-xl sm:text-2xl font-bold font-display tracking-tight text-white uppercase leading-none">
-              Mock <span className="text-brand">Mitra</span>
+            <span className="text-xl sm:text-2xl font-black font-display tracking-tight text-white uppercase leading-none">
+              Mock-<span className="text-brand">Mitra</span>
             </span>
           </div>
         </div>

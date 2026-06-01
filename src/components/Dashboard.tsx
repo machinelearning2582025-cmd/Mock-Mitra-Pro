@@ -319,7 +319,7 @@ export default function Dashboard({
               <Smartphone className="w-6 h-6 flex animate-pulse" />
             </div>
             <div>
-              <h4 className="text-base font-black text-white uppercase tracking-wider">MockMitra Android aur iOS App ⚡</h4>
+              <h4 className="text-base font-black text-white uppercase tracking-wider">Mock-Mitra-Pro Android aur iOS App ⚡</h4>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">Apne smartphone ki home-screen se direct quick login, dynamic mock tests aur smart AI updates access karein. Low storage use!</p>
             </div>
           </div>
@@ -327,7 +327,7 @@ export default function Dashboard({
             onClick={onInstallClick}
             className="w-full md:w-auto px-6 py-3 bg-brand hover:bg-brand-light text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer text-center"
           >
-            Install MockMitra App 📱
+            Install Mock-Mitra-Pro App 📱
           </button>
         </div>
       )}

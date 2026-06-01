@@ -363,7 +363,7 @@ export default function App() {
       <div className="min-h-screen flex items-center justify-center bg-[#0A0C10] text-slate-200 animate-pulse">
         <div className="text-center p-8">
           <Loader2 className="w-12 h-12 text-brand animate-spin mx-auto mb-4" />
-          <h3 className="text-xl font-bold mb-2 text-white">Connecting to Mock Mitra...</h3>
+          <h3 className="text-xl font-bold mb-2 text-white">Connecting to Mock-Mitra-Pro...</h3>
           <p className="text-slate-400 text-sm">Validating secure Google connection vectors...</p>
         </div>
       </div>
@@ -507,7 +507,7 @@ export default function App() {
 
                 <div className="space-y-4 text-xs font-semibold text-slate-300">
                   <p className="text-slate-400 leading-normal font-sans">
-                    MockMitra ek lightweight progressive web app (PWA) hai. Standard phone app ki tarah fast launch, zero loading, direct home-screen icons aur offline elements pane ke liye is tarah install karein:
+                    Mock-Mitra-Pro ek lightweight progressive web app (PWA) hai. Standard phone app ki tarah fast launch, zero loading, direct home-screen icons aur offline elements pane ke liye is tarah install karein:
                   </p>
 
                   <div className="space-y-3.5 mt-2">
