@@ -10,7 +10,7 @@ if (!apiKey) {
 }
 const ai = new GoogleGenAI({ apiKey: apiKey || "dummy_key" });
 
-const MODEL_FLASH = "gemini-3.5-flash";
+const MODEL_FLASH = "gemini-3.1-flash-lite";
 const MODEL_LITE = "gemini-3.1-flash-lite";
 
 export async function analyzePerformanceAPI(
@@ -214,6 +214,12 @@ export async function generateQuestionsAPI(
         Ensure variety and avoid repeating common textbook examples.
         Questions and explanations must be written in ${language}. 
         If language is English, use simple English. If Hinglish, use a mix of Hindi and English.
+        
+        SPEED OPTIMIZATION DIRECTIVES:
+        - Generate questions, option values and explanations that are extremely concise, direct, and to-the-point to ensure super fast output generation.
+        - Explanations MUST be highly compressed and brief (maximum 1-2 small sentences). DO NOT write long paragraphs under any circumstances.
+        - Keep option choice text short (e.g. single words, short phrases, or simple values).
+        
         Return the response as a JSON array.
       `
     }
