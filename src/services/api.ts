@@ -178,6 +178,20 @@ export async function generateQuestionsAPI(
   // Gemini 3.5 Flash is our default main question builder
   const activeModel = MODEL_FLASH;
 
+  let studySchemePrompt = "";
+  if (customSetup?.studyScheme) {
+    if (customSetup.studyScheme === 'PYQ & Important based') {
+      studySchemePrompt = `STUDY SCHEME DIRECTIVE (PYQ & Important based): 
+      Generate questions resembling past-year exam questions (PYQ), real competitive paper trends, high-yield repeated syllabus highlights, and core standard question formulations. In explanations, hint if this aligns with traditional PYQ formats.`;
+    } else if (customSetup.studyScheme === 'Study based Imp') {
+      studySchemePrompt = `STUDY SCHEME DIRECTIVE (Study based Imp): 
+      Generate questions to recall and validate central academic concepts, analytical equations, definitions, facts, and key conceptual milestones based on theoretical review and notes.`;
+    } else if (customSetup.studyScheme === 'Pure System') {
+      studySchemePrompt = `STUDY SCHEME DIRECTIVE (Pure System): 
+      Generate questions using the standard official mock blueprint system, precise negative marking style traps, complex logical steps, and strictly structured competitive syllabi mappings.`;
+    }
+  }
+
   const parts: any[] = [
     {
       text: `
@@ -190,6 +204,7 @@ export async function generateQuestionsAPI(
         ${milestonesContext}
         ${customText}
         ${videoContext}
+        ${studySchemePrompt}
 
         Generate ${count} high-quality, real-world exam questions or problems for topics: ${topics.join(", ")}.
         Difficulty: ${difficulty}.

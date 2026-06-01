@@ -13,6 +13,7 @@ interface DrillSetupModalProps {
 export default function DrillSetupModal({ isOpen, onClose, onStart, exam }: DrillSetupModalProps) {
   const [customPrompt, setCustomPrompt] = useState('');
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+  const [studyScheme, setStudyScheme] = useState<'PYQ & Important based' | 'Study based Imp' | 'Pure System'>('Pure System');
   const [files, setFiles] = useState<DrillFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,10 +43,12 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam }: Dril
     onStart({ 
       customPrompt, 
       files, 
-      difficulty
+      difficulty,
+      studyScheme
     });
     setCustomPrompt('');
     setDifficulty('Medium');
+    setStudyScheme('Pure System');
     setFiles([]);
   };
 
@@ -100,6 +103,34 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam }: Dril
                       }`}
                     >
                       {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Study Scheme / Practice Pattern Selection */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1 flex items-center gap-2">
+                  <Sparkles className="w-3 h-3 text-brand" /> Study Scheme & Pattern
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {([
+                    { id: 'PYQ & Important based', label: 'PQY & Important Based', desc: 'Previous Papers & High-Yield' },
+                    { id: 'Study based Imp', label: 'Study Based Imp', desc: 'Core academic notes & facts' },
+                    { id: 'Pure System', label: 'Pure System', desc: 'Mock blueprint with strict system' }
+                  ] as const).map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setStudyScheme(item.id)}
+                      className={`p-3 rounded-xl font-bold transition-all border-2 flex flex-col items-center justify-center text-center gap-1 ${
+                        studyScheme === item.id 
+                          ? 'bg-brand/20 border-brand text-brand shadow-lg shadow-brand/10' 
+                          : 'bg-slate-900/50 border-white/5 text-slate-500 hover:border-white/10'
+                      }`}
+                    >
+                      <span className="text-[10px] uppercase tracking-wider">{item.label}</span>
+                      <span className="text-[8px] font-medium opacity-60 leading-tight block">{item.desc}</span>
                     </button>
                   ))}
                 </div>

@@ -80,4 +80,5 @@ export interface DrillSetup {
     title: string;
     description: string;
   };
+  studyScheme?: 'PYQ & Important based' | 'Study based Imp' | 'Pure System';
 }
