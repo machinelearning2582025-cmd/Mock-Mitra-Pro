@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import { Question, Topic, UserPerformance, DrillSetup } from "../types";
 import { getExamConfig } from "../data/examsConfig";
 import { QUESTIONS } from "../data/questions";
@@ -10,7 +10,7 @@ if (!apiKey) {
 }
 const ai = new GoogleGenAI({ apiKey: apiKey || "dummy_key" });
 
-const MODEL_FLASH = "gemini-3.1-flash-lite";
+const MODEL_FLASH = "gemini-3.5-flash";
 const MODEL_LITE = "gemini-3.1-flash-lite";
 
 export async function analyzePerformanceAPI(
@@ -36,6 +36,7 @@ export async function analyzePerformanceAPI(
         Identify clearly what to focus on next and a small 'Study Plan' brief based on the exam's typical patterns.
       `,
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -195,32 +196,41 @@ export async function generateQuestionsAPI(
   const parts: any[] = [
     {
       text: `
-        You are an expert exam paper setter for ${examType}.
-        Context/Instructions for this exam: ${patternInstructions}
-        LANGUAGE PREFERENCE: ${language}.
-        
-        ${weakTopicsContext}
-        ${strongTopicsContext}
-        ${milestonesContext}
-        ${customText}
-        ${videoContext}
-        ${studySchemePrompt}
+        You are an elite, highly professional and technically authoritative exam paper setter and senior academic specialist for ${examType}.
+        Your goal is to curate a set of ${count} high-caliber, academically rigorous, and incredibly relevant questions or problems for the following topics/subjects: ${topics.join(", ")}.
 
-        Generate ${count} high-quality, real-world exam questions or problems for topics: ${topics.join(", ")}.
-        Difficulty: ${difficulty}.
+        --- HIGH PRIORITY CUSTOM SETUP & CONTEXT ADAPTATIONS ---
         
-        CRITICAL: DO NOT repeat any questions with the following IDs: ${avoidIds.slice(0, 20).join(", ")}.
-        
-        Ensure variety and avoid repeating common textbook examples.
-        Questions and explanations must be written in ${language}. 
-        If language is English, use simple English. If Hinglish, use a mix of Hindi and English.
-        
-        SPEED OPTIMIZATION DIRECTIVES:
-        - Generate questions, option values and explanations that are extremely concise, direct, and to-the-point to ensure super fast output generation.
-        - Explanations MUST be highly compressed and brief (maximum 1-2 small sentences). DO NOT write long paragraphs under any circumstances.
-        - Keep option choice text short (e.g. single words, short phrases, or simple values).
-        
-        Return the response as a JSON array.
+        1. LANGUAGE AND DIALECT RULES:
+           - Selected Language: ${language}
+           - If English: Use standard, clean, grammatically perfect English. Avoid unnecessarily verbose sentences but match the technical precision of professional examinations.
+           - If Hinglish: Use natural, fluid, colloquial Hinglish (combining Hindi conversational vocabulary in Roman/Latin script with technical English terms). Question stem and explanations should sound organic, e.g., "Is core transaction pattern me ACID properties kaise mainain hoti hain? Explanations must detail elements in high-fidelity Hinglish."
+
+        2. STRICT DIFFICULTY CALIBRATION (Target Difficulty: ${difficulty}):
+           - Easy: Focus on solid conceptual check-ins, straightforward definitions, direct single-variable formula implementations, and basic facts. Make options distinct.
+           - Medium: Focus on logical application, conceptual comparisons, mid-level problem solving, and scenarios where concepts interact. Requires 2-3 logical steps.
+           - Hard: Focus on advanced, multi-faceted analytical problems, intricate math/logical deduction series, edge cases, system bottlenecks, and highly plausible distractors (trap answers) that require profound mastery to solve.
+
+        3. PRIMARY INSTRUCTIONAL GUIDE (CUSTOM OVERRIDES OVER GENERICS):
+           - Standard Blueprint context: ${patternInstructions}
+           ${customText ? `- USER CRITICAL CORE INSTRUCTION: "${customSetup?.customPrompt}". (This is your supreme guiding rule. Prioritize this over default subjects if explicit).` : ""}
+           ${videoContext ? `- VIDEO REF SOURCE: ${videoContext}` : ""}
+
+        4. PERFORMANCE-DRIVEN PROFILE TAILORING:
+           ${weakTopicsContext ? `- Weakness Correction Zone: ${weakTopicsContext}. Integrate diagnostic checks for these topics to help the student learn.` : ""}
+           ${strongTopicsContext ? `- Advanced Enrichment Zone: ${strongTopicsContext}. Push the complexity up for these concepts.` : ""}
+           ${milestonesContext ? `- Progress Milestones Linkage: ${milestonesContext}` : ""}
+
+        5. CORE STUDY SCHEME SYSTEM:
+           ${studySchemePrompt ? `- ${studySchemePrompt}` : ""}
+
+        --- EXQUISITE QUALITY & GENERATION DISCIPLINE ---
+        - NO PLAIN PLACEHOLDERS: Generate fully formed, mathematically correct, logically sound questions. Do not use generic filler text or simplify too much.
+        - EXCELLENT DISTRACTORS: All wrong answer options must be plausible, reflecting common misconceptions or direct computational error paths.
+        - DIRECT, HIGH-DENSITY EXPLANATIONS: Do not waste time on conversational filler like 'Sure, here is your question', 'Let me explain that', or conversational intro lines helper words. Explanations must directly explain why the correct option is true and briefly dissect why alternatives fail, saving generation latency keeping it lightning-fast but deep.
+        - PREVENT REPETITION: Do not reuse or duplicate any question concepts resembling the following IDs: ${avoidIds.slice(0, 20).join(", ")}.
+
+        Return the response strictly as a JSON array matching the specified JSON schema.
       `
     }
   ];
@@ -251,6 +261,7 @@ export async function generateQuestionsAPI(
       model: modelName,
       contents: { parts },
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
@@ -343,6 +354,7 @@ export async function generateLearningStrategyAPI(
       model: modelName,
       contents: prompt,
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -594,6 +606,7 @@ export async function chatWithMitraAPI(
       model: MODEL_FLASH,
       contents,
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         systemInstruction
       }
     });
@@ -605,6 +618,7 @@ export async function chatWithMitraAPI(
         model: MODEL_LITE,
         contents,
         config: {
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
           systemInstruction
         }
       });
