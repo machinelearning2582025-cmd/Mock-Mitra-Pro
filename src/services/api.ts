@@ -196,39 +196,43 @@ export async function generateQuestionsAPI(
   const parts: any[] = [
     {
       text: `
-        You are an elite, highly professional and technically authoritative exam paper setter and senior academic specialist for ${examType}.
-        Your goal is to curate a set of ${count} high-caliber, academically rigorous, and incredibly relevant questions or problems for the following topics/subjects: ${topics.join(", ")}.
+        You are a highly skilled academic exam paper setter and senior subject specialist for ${examType}.
+        Your goal is to curate a set of ${count} high-quality, relevant, and accurate questions or problems for the following topics/subjects: ${topics.join(", ")}.
 
-        --- HIGH PRIORITY CUSTOM SETUP & CONTEXT ADAPTATIONS ---
+        CRITICAL TOPIC BALANCING RULE:
+        You MUST generate a balanced set of questions representing ALL subjects/topics provided: ${topics.join(", ")}. 
+        Do not focus exclusively on only one or two categories (like only Math or Science) if multiple subjects are requested. Distribute the ${count} questions across all these topics as evenly as possible.
+
+        --- CUSTOM SETUP & CONTEXT ---
         
         1. LANGUAGE AND DIALECT RULES:
            - Selected Language: ${language}
-           - If English: Use standard, clean, grammatically perfect English. Avoid unnecessarily verbose sentences but match the technical precision of professional examinations.
-           - If Hinglish: Use natural, fluid, colloquial Hinglish (combining Hindi conversational vocabulary in Roman/Latin script with technical English terms). Question stem and explanations should sound organic, e.g., "Is core transaction pattern me ACID properties kaise mainain hoti hain? Explanations must detail elements in high-fidelity Hinglish."
+           - If English: Use standard, clean, grammatically perfect English. Avoid unnecessarily verbose sentences.
+           - If Hinglish: Use natural, fluid, colloquial Hinglish (mixing Hindi in Roman/Latin script with technical English terms). Question stem and explanations should sound organic, e.g., "India ki capital city kaunsi hai?" or "Is process me photosynthesis kaise kaam karta hai? Iska explanation detailed aur simple Hinglish me likhein."
 
-        2. STRICT DIFFICULTY CALIBRATION (Target Difficulty: ${difficulty}):
-           - Easy: Focus on solid conceptual check-ins, straightforward definitions, direct single-variable formula implementations, and basic facts. Make options distinct.
-           - Medium: Focus on logical application, conceptual comparisons, mid-level problem solving, and scenarios where concepts interact. Requires 2-3 logical steps.
-           - Hard: Focus on advanced, multi-faceted analytical problems, intricate math/logical deduction series, edge cases, system bottlenecks, and highly plausible distractors (trap answers) that require profound mastery to solve.
+        2. DIFFICULTY LEVEL (Target Difficulty: ${difficulty}):
+           - Easy: Simple conceptual checks, clear definitions, or direct fact recall.
+           - Medium: Logical application of concepts, comparisons, and basic analytical steps.
+           - Hard: Comprehensive multi-step analytical problems, detailed reasoning, and tricky but logical distractors (trap answers).
 
-        3. PRIMARY INSTRUCTIONAL GUIDE (CUSTOM OVERRIDES OVER GENERICS):
-           - Standard Blueprint context: ${patternInstructions}
-           ${customText ? `- USER CRITICAL CORE INSTRUCTION: "${customSetup?.customPrompt}". (This is your supreme guiding rule. Prioritize this over default subjects if explicit).` : ""}
+        3. PRIMARY INSTRUCTIONAL DETAIL:
+           - Curriculum Guidelines: ${patternInstructions}
+           ${customText ? `- USER DIRECTIVE: "${customSetup?.customPrompt}". (Prioritize this core instruction if provided).` : ""}
            ${videoContext ? `- VIDEO REF SOURCE: ${videoContext}` : ""}
 
-        4. PERFORMANCE-DRIVEN PROFILE TAILORING:
-           ${weakTopicsContext ? `- Weakness Correction Zone: ${weakTopicsContext}. Integrate diagnostic checks for these topics to help the student learn.` : ""}
-           ${strongTopicsContext ? `- Advanced Enrichment Zone: ${strongTopicsContext}. Push the complexity up for these concepts.` : ""}
-           ${milestonesContext ? `- Progress Milestones Linkage: ${milestonesContext}` : ""}
+        4. PROFILE-DRIVEN ADAPTATIONS:
+           ${weakTopicsContext ? `- Focus Area (Clarification needed): ${weakTopicsContext}. Include diagnostic elements for these.` : ""}
+           ${strongTopicsContext ? `- Focus Area (Advanced): ${strongTopicsContext}. Feel free to make these more challenging.` : ""}
+           ${milestonesContext ? `- Progress/Milestones Linkage: ${milestonesContext}` : ""}
 
         5. CORE STUDY SCHEME SYSTEM:
            ${studySchemePrompt ? `- ${studySchemePrompt}` : ""}
 
         --- EXQUISITE QUALITY & GENERATION DISCIPLINE ---
-        - NO PLAIN PLACEHOLDERS: Generate fully formed, mathematically correct, logically sound questions. Do not use generic filler text or simplify too much.
-        - EXCELLENT DISTRACTORS: All wrong answer options must be plausible, reflecting common misconceptions or direct computational error paths.
-        - DIRECT, HIGH-DENSITY EXPLANATIONS: Do not waste time on conversational filler like 'Sure, here is your question', 'Let me explain that', or conversational intro lines helper words. Explanations must directly explain why the correct option is true and briefly dissect why alternatives fail, saving generation latency keeping it lightning-fast but deep.
-        - PREVENT REPETITION: Do not reuse or duplicate any question concepts resembling the following IDs: ${avoidIds.slice(0, 20).join(", ")}.
+        - NO DUMMY PLACEHOLDERS: Generate fully formed, factually correct, logically sound questions.
+        - GOOD DISTRACTORS: All alternative choices must be plausible, reflecting common misunderstandings or typical student errors.
+        - DIRECT, HIGH-DENSITY EXPLANATIONS: Avoid conversational intros or prefaces. Explanations must directly explain why the correct option is true and briefly why others are incorrect, keeping the response fast but extremely clear.
+        - PREVENT REPETITION: Do not reuse or duplicate question concepts resembling the following IDs: ${avoidIds.slice(0, 20).join(", ")}.
 
         Return the response strictly as a JSON array matching the specified JSON schema.
       `
@@ -295,11 +299,42 @@ export async function generateQuestionsAPI(
       console.warn(`Primary model ${MODEL_FLASH} failed, using fallback ${MODEL_LITE}`);
       response = await generate(MODEL_LITE);
     }
-    const parsed = JSON.parse(response.text || "[]");
-    if (parsed && parsed.length > 0) {
-      return parsed;
+    
+    let text = response.text || "";
+    // Robust cleanup of markdown wrappers if any
+    if (text.includes("```")) {
+      text = text.replace(/```json/g, "").replace(/```/g, "").trim();
     }
-    throw new Error("Empty questions list returned from Gemini API");
+
+    const parsed = JSON.parse(text || "[]");
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      // Clean, validate and fallback missing keys to prevent runtime UI crashes
+      const sanitized = parsed.map((item: any, idx: number) => {
+        const itemOptions = Array.isArray(item.options) && item.options.length >= 2 
+          ? item.options 
+          : ["A", "B", "C", "D"];
+          
+        let corrAns = typeof item.correctAnswer === "number" ? item.correctAnswer : 0;
+        if (corrAns < 0 || corrAns >= itemOptions.length) {
+          corrAns = 0;
+        }
+
+        return {
+          id: item.id ? String(item.id) : `gen-${idx}-${Date.now()}`,
+          subject: item.subject ? String(item.subject) : (topics[idx % topics.length] || "General"),
+          topic: item.topic ? String(item.topic) : (topics[idx % topics.length] || "General Concept"),
+          question: item.question ? String(item.question) : `Identify correct conceptual fact about ${topics[idx % topics.length] || "selected subject"}.`,
+          options: itemOptions.map((o: any) => String(o)),
+          correctAnswer: corrAns,
+          explanation: item.explanation ? String(item.explanation) : "Option stands verified by general conceptual rules.",
+          difficulty: item.difficulty && ['Easy', 'Medium', 'Hard'].includes(item.difficulty) 
+            ? item.difficulty 
+            : (difficulty || 'Medium')
+        };
+      });
+      return sanitized;
+    }
+    throw new Error("No array format returned from Gemini API");
   } catch (error) {
     console.warn("Gemini Generation Error, using static questions fallback:", error);
     

@@ -55,6 +55,28 @@ export function getExamConfig(name: string): ExamConfig {
   const found = EXAMS_CONFIG.find(e => e.name.toLowerCase() === normalized.toLowerCase());
   if (found) return found;
 
+  const normalizedLower = normalized.toLowerCase();
+  const isSchoolRelated = 
+    normalizedLower.includes('class') || 
+    normalizedLower.includes('grade') || 
+    normalizedLower.includes('school') ||
+    normalizedLower.includes('board') ||
+    normalizedLower.includes('cbse') ||
+    normalizedLower.includes('icse') ||
+    /^\d+(st|nd|rd|th)?\s*(standard|std|grade|class)$/i.test(normalized) ||
+    /^(standard|std|grade|class)\s*\d+/i.test(normalized);
+
+  if (isSchoolRelated) {
+    return {
+      id: `custom-${encodeURIComponent(normalized)}`,
+      name: normalized,
+      group: 'School',
+      description: `Tailored study syllabus for ${normalized}.`,
+      patternInstructions: `Follow school board guidelines for ${normalized}. Test foundational concepts across diverse school-level subjects.`,
+      defaultTopics: ['Mathematics', 'Science', 'Social Studies', 'Language']
+    };
+  }
+
   return {
     id: `custom-${encodeURIComponent(normalized || 'exam')}`,
     name: normalized || 'My Custom Study Map',
