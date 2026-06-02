@@ -100,12 +100,8 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
-  const [supportsBeforeInstallPrompt, setSupportsBeforeInstallPrompt] = useState(false);
 
   useEffect(() => {
-    // Detect if 'beforeinstallprompt' is supported in this browser
-    setSupportsBeforeInstallPrompt('onbeforeinstallprompt' in window);
-
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -114,18 +110,17 @@ export default function App() {
     const handleAppInstalled = () => {
       setDeferredPrompt(null);
       setIsPWAInstalled(true);
+      localStorage.setItem('pwa_installed_mockmitra', 'true');
       console.log('App successfully installed!');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Clear old state just in case
-    localStorage.removeItem('pwa_installed_mockmitra');
-
     const checkIsPWA = () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone === true;
+                         (window.navigator as any).standalone === true ||
+                         localStorage.getItem('pwa_installed_mockmitra') === 'true';
       setIsPWAInstalled(standalone);
     };
     checkIsPWA();
@@ -138,8 +133,6 @@ export default function App() {
       clearInterval(interval);
     };
   }, []);
-
-  const shouldShowInstallButton = !isPWAInstalled;
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
@@ -414,7 +407,7 @@ export default function App() {
             onStart={() => setAppState('onboarding')} 
             onStartGoogle={handleStartPractice}
             onInstallClick={handleInstallClick}
-            showInstallButton={shouldShowInstallButton}
+            showInstallButton={!isPWAInstalled}
           />
         )}
         
@@ -434,7 +427,7 @@ export default function App() {
             onInstallClick={handleInstallClick}
             onUpdateProfile={updateProfile}
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
-            showInstallButton={shouldShowInstallButton}
+            showInstallButton={!isPWAInstalled}
             onClearTestHistory={clearTestHistory}
             onClearChatHistory={clearChatHistory}
           />
