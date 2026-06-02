@@ -1,8 +1,8 @@
 {
-  "name": "Mock Mitra - Exam Preparation",
-  "short_name": "Mock Mitra",
-  "id": "com.mockmitra.app",
-  "description": "Simple and effective exam preparation platform for government exams like SSC, Banking, and Railways.",
+  "name": "MockMitra Pro - 20-Min Daily Drills",
+  "short_name": "MockMitra Pro",
+  "id": "/",
+  "description": "Crack any exam with just 20 minutes of daily high-yield micro-learning. Your Exam, Our Strategy.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -13,7 +13,6 @@
   "dir": "ltr",
   "categories": ["education", "productivity"],
   "prefer_related_applications": false,
-  "related_applications": [],
   "screenshots": [
     {
       "src": "/screenshot-mobile.png",
@@ -32,7 +31,7 @@
   ],
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/icon-512.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"

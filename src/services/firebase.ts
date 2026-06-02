@@ -7,7 +7,7 @@ import {
   User
 } from 'firebase/auth';
 import { 
-  initializeFirestore, 
+  getFirestore, 
   doc, 
   getDoc, 
   setDoc, 
@@ -25,9 +25,7 @@ import { UserProfile, TestResult, Topic } from '../types';
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore & Auth services
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true
-}, firebaseConfig.firestoreDatabaseId || "(default)"); /* CRITICAL: The app will break without this line */
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: The app will break without this line */
 export const auth = getAuth();
 
 // Test the connection as strictly requested by the Firebase Skill guidelines
