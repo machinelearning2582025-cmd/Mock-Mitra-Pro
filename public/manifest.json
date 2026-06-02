@@ -1,7 +1,6 @@
 {
-  "name": "Mock-Mitra-Pro - 20-Min Exam Prep",
-  "short_name": "Mock-Mitra-Pro",
-  "id": "/",
+  "name": "MockMitra Pro - 20-Min Daily Drills",
+  "short_name": "MockMitra Pro",
   "description": "Crack any exam with just 20 minutes of daily high-yield micro-learning. Your Exam, Our Strategy.",
   "start_url": "/",
   "scope": "/",
@@ -13,9 +12,6 @@
   "dir": "ltr",
   "categories": ["education", "productivity"],
   "prefer_related_applications": false,
-  "related_applications": [],
-  "iarc_rating_id": "18fbdff5-299d-11ee-be56-0242ac120002",
-  "display_override": ["standalone", "window-controls-overlay"],
   "screenshots": [
     {
       "src": "/screenshot-mobile.png",
