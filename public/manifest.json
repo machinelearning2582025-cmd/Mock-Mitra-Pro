@@ -1,7 +1,7 @@
 {
   "name": "Mock-Mitra-Pro - 20-Min Exam Prep",
   "short_name": "Mock-Mitra-Pro",
-  "id": "com.mockmitra.app",
+  "id": "/",
   "description": "Crack any exam with just 20 minutes of daily high-yield micro-learning. Your Exam, Our Strategy.",
   "start_url": "/",
   "scope": "/",
