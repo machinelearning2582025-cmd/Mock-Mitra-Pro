@@ -100,8 +100,12 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
+  const [supportsBeforeInstallPrompt, setSupportsBeforeInstallPrompt] = useState(false);
 
   useEffect(() => {
+    // Detect if 'beforeinstallprompt' is supported in this browser
+    setSupportsBeforeInstallPrompt('onbeforeinstallprompt' in window);
+
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -134,6 +138,21 @@ export default function App() {
       clearInterval(interval);
     };
   }, []);
+
+  const shouldShowInstallButton = (() => {
+    // 1. If running under standalone mode (already open as a PWA), never show the install button inside the PWA!
+    if (isPWAInstalled) return false;
+
+    // 2. If the browser supports beforeinstallprompt (Chrome, Android Browser, etc.):
+    //    Show the install button ONLY if the deferred prompt is NOT null (meaning it can be installed, i.e., not already installed/downloaded)
+    if (supportsBeforeInstallPrompt) {
+      return deferredPrompt !== null;
+    }
+
+    // 3. If the browser does not support beforeinstallprompt (e.g. Safari on iOS, Firefox):
+    //    We show the button so the user can click it for instruction guide on manual installation.
+    return true;
+  })();
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
@@ -408,7 +427,7 @@ export default function App() {
             onStart={() => setAppState('onboarding')} 
             onStartGoogle={handleStartPractice}
             onInstallClick={handleInstallClick}
-            showInstallButton={!isPWAInstalled}
+            showInstallButton={shouldShowInstallButton}
           />
         )}
         
@@ -428,7 +447,7 @@ export default function App() {
             onInstallClick={handleInstallClick}
             onUpdateProfile={updateProfile}
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
-            showInstallButton={!isPWAInstalled}
+            showInstallButton={shouldShowInstallButton}
             onClearTestHistory={clearTestHistory}
             onClearChatHistory={clearChatHistory}
           />
