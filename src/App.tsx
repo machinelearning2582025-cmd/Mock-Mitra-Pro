@@ -110,17 +110,18 @@ export default function App() {
     const handleAppInstalled = () => {
       setDeferredPrompt(null);
       setIsPWAInstalled(true);
-      localStorage.setItem('pwa_installed_mockmitra', 'true');
       console.log('App successfully installed!');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // Clear old state just in case
+    localStorage.removeItem('pwa_installed_mockmitra');
+
     const checkIsPWA = () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone === true ||
-                         localStorage.getItem('pwa_installed_mockmitra') === 'true';
+                         (window.navigator as any).standalone === true;
       setIsPWAInstalled(standalone);
     };
     checkIsPWA();
