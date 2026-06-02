@@ -1,49 +1,21 @@
 {
-  "name": "Mock-Mitra-Pro - 20-Min Exam Prep",
-  "short_name": "Mock-Mitra-Pro",
-  "id": "com.mockmitra.app",
-  "description": "Crack any exam with just 20 minutes of daily high-yield micro-learning. Your Exam, Our Strategy.",
+  "name": "MockMitra",
+  "short_name": "MockMitra",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0F1117",
   "theme_color": "#0F1117",
-  "lang": "en-IN",
-  "dir": "ltr",
-  "categories": ["education", "productivity"],
-  "prefer_related_applications": false,
-  "related_applications": [],
-  "iarc_rating_id": "18fbdff5-299d-11ee-be56-0242ac120002",
-  "display_override": ["standalone", "window-controls-overlay"],
-  "screenshots": [
-    {
-      "src": "/screenshot-mobile.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "MockMitra Practice Questions and Live Chat Mitra"
-    },
-    {
-      "src": "/screenshot-desktop.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "MockMitra Exam Dashboard and Performance Tracker"
-    }
-  ],
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
