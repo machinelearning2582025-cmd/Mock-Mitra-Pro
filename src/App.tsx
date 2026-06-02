@@ -139,20 +139,7 @@ export default function App() {
     };
   }, []);
 
-  const shouldShowInstallButton = (() => {
-    // 1. If running under standalone mode (already open as a PWA), never show the install button inside the PWA!
-    if (isPWAInstalled) return false;
-
-    // 2. If the browser supports beforeinstallprompt (Chrome, Android Browser, etc.):
-    //    Show the install button ONLY if the deferred prompt is NOT null (meaning it can be installed, i.e., not already installed/downloaded)
-    if (supportsBeforeInstallPrompt) {
-      return deferredPrompt !== null;
-    }
-
-    // 3. If the browser does not support beforeinstallprompt (e.g. Safari on iOS, Firefox):
-    //    We show the button so the user can click it for instruction guide on manual installation.
-    return true;
-  })();
+  const shouldShowInstallButton = !isPWAInstalled;
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
