@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Target, TrendingUp, AlertTriangle, Calendar, ArrowRight, Zap, Sparkles, BookOpen, Smartphone } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, Calendar, ArrowRight, Zap, Sparkles, BookOpen } from 'lucide-react';
 import { UserProfile, Topic } from '../types';
 import { getExamConfig } from '../data/examsConfig';
 import AILearningDesk from './AILearningDesk';
@@ -10,10 +10,8 @@ interface DashboardProps {
   onStartTest: () => void;
   onStartTopicTest: (topic: Topic) => void;
   onViewResult: (result: any) => void;
-  onInstallClick?: () => void;
   onUpdateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   onStartCustomDrill: (prompt: string) => void;
-  showInstallButton?: boolean;
   onClearTestHistory?: () => void;
   onClearChatHistory?: () => void;
 }
@@ -23,10 +21,8 @@ export default function Dashboard({
   onStartTest, 
   onStartTopicTest, 
   onViewResult, 
-  onInstallClick,
   onUpdateProfile,
   onStartCustomDrill,
-  showInstallButton = true,
   onClearTestHistory,
   onClearChatHistory
 }: DashboardProps) {
@@ -310,27 +306,6 @@ export default function Dashboard({
         </div>
 
       </div>
-
-      {/* PWA App Install Banner Section */}
-      {showInstallButton && (
-        <div className="mt-8 p-5 sm:p-6 bento-card bg-gradient-to-r from-[#11131c] via-[#0D1017] to-brand/5 border-brand/20 flex flex-col md:flex-row items-center justify-between gap-5 shadow-[0_4px_30px_rgba(37,99,235,0.08)]">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand shrink-0 shadow-inner">
-              <Smartphone className="w-6 h-6 flex animate-pulse" />
-            </div>
-            <div>
-              <h4 className="text-base font-black text-white uppercase tracking-wider">Mock-Mitra-Pro Android aur iOS App ⚡</h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">Apne smartphone ki home-screen se direct quick login, dynamic mock tests aur smart AI updates access karein. Low storage use!</p>
-            </div>
-          </div>
-          <button
-            onClick={onInstallClick}
-            className="w-full md:w-auto px-6 py-3 bg-brand hover:bg-brand-light text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer text-center"
-          >
-            Install Mock-Mitra-Pro App 📱
-          </button>
-        </div>
-      )}
 
     </div>
   );

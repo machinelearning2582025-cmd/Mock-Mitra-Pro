@@ -11,7 +11,7 @@ import { usePersistence } from './hooks/usePersistence';
 import { QUESTIONS } from './data/questions';
 import { generateQuestionsAPI, analyzePerformanceAPI, updatePersonalisedProfileBackgroundAPI } from './services/api';
 import { Topic, Question, DrillSetup } from './types';
-import { Loader2, Download, Smartphone, Share2, X, Sparkles, Zap, ShieldAlert, ExternalLink } from 'lucide-react';
+import { Loader2, Download, Share2, X, Sparkles, Zap, ShieldAlert, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getExamConfig } from './data/examsConfig';
 
@@ -96,59 +96,6 @@ export default function App() {
       }
     }
   }, [profile.onboarded, authLoading, firebaseUser, appState]);
-
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
-  const [isPWAInstalled, setIsPWAInstalled] = useState(false);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    const handleAppInstalled = () => {
-      setDeferredPrompt(null);
-      setIsPWAInstalled(true);
-      localStorage.setItem('pwa_installed_mockmitra', 'true');
-      console.log('App successfully installed!');
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    const checkIsPWA = () => {
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone === true ||
-                         localStorage.getItem('pwa_installed_mockmitra') === 'true';
-      setIsPWAInstalled(standalone);
-    };
-    checkIsPWA();
-
-    const interval = setInterval(checkIsPWA, 2000);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      try {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User installation decision: ${outcome}`);
-        setDeferredPrompt(null);
-      } catch (err) {
-        console.error("Installation prompt failed:", err);
-        setIsInstallModalOpen(true);
-      }
-    } else {
-      setIsInstallModalOpen(true);
-    }
-  };
 
   const [currentTestQuestions, setCurrentTestQuestions] = useState<Question[]>([]);
   const [lastResults, setLastResults] = useState<any>(null);
@@ -406,8 +353,6 @@ export default function App() {
           <Hero 
             onStart={() => setAppState('onboarding')} 
             onStartGoogle={handleStartPractice}
-            onInstallClick={handleInstallClick}
-            showInstallButton={!isPWAInstalled}
           />
         )}
         
@@ -424,10 +369,8 @@ export default function App() {
             onStartTest={() => setIsDrillSetupOpen(true)} 
             onStartTopicTest={(topic) => startNewTest(undefined, [topic])}
             onViewResult={viewTestResult}
-            onInstallClick={handleInstallClick}
             onUpdateProfile={updateProfile}
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
-            showInstallButton={!isPWAInstalled}
             onClearTestHistory={clearTestHistory}
             onClearChatHistory={clearChatHistory}
           />
@@ -469,83 +412,6 @@ export default function App() {
               onNextTest={() => startNewTest()}
             />
         )}
-
-        {/* PWA Install Guide Modal */}
-        <AnimatePresence>
-          {isInstallModalOpen && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A0C10]/95 backdrop-blur-md"
-            >
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                className="relative w-full max-w-md bento-card bg-[#0c0f17] border-brand/30 p-6 sm:p-8 shadow-2xl overflow-hidden flex flex-col"
-              >
-                {/* Glow effects inside modal */}
-                <div className="absolute top-0 right-0 w-36 h-36 bg-brand/10 blur-[80px] rounded-full -mr-16 -mt-16 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-36 h-36 bg-indigo-600/10 blur-[80px] rounded-full -ml-16 -mb-16 pointer-events-none"></div>
-
-                <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-5">
-                  <div className="flex items-center gap-2.5 text-white">
-                    <Smartphone className="w-5 h-5 text-brand flex animate-pulse" />
-                    <div>
-                      <h3 className="text-sm font-black uppercase tracking-wider">How to Install App 📱</h3>
-                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Quick Installation Guide</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setIsInstallModalOpen(false)}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="space-y-4 text-xs font-semibold text-slate-300">
-                  <p className="text-slate-400 leading-normal font-sans">
-                    Mock-Mitra-Pro ek lightweight progressive web app (PWA) hai. Standard phone app ki tarah fast launch, zero loading, direct home-screen icons aur offline elements pane ke liye is tarah install karein:
-                  </p>
-
-                  <div className="space-y-3.5 mt-2">
-                    {/* Android Instructions */}
-                    <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl">
-                      <div className="flex items-center gap-2 text-white font-black uppercase tracking-wide text-[10px] mb-1.5 font-sans">
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand" /> For Android (Google Chrome/Edge)
-                      </div>
-                      <p className="text-[11px] text-slate-400 leading-relaxed pl-3.5 font-sans font-medium">
-                        Browser me right-top side touch karke <span className="text-white font-bold">"Install App"</span> ya <span className="text-brand-light font-bold">"Add to Home screen"</span> select karein.
-                      </p>
-                    </div>
-
-                    {/* iOS / Safari Instructions */}
-                    <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl">
-                      <div className="flex items-center gap-2 text-white font-black uppercase tracking-wide text-[10px] mb-1.5 font-sans">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> For iOS iPhone/iPad (Safari Browser)
-                      </div>
-                      <p className="text-[11px] text-slate-400 leading-relaxed pl-3.5 font-sans font-medium font-medium">
-                        Safari block bar me share button <span className="text-white font-bold">(📤 Share Menu)</span> touch karein. Scroll karke <span className="text-brand-light font-bold">"Add to Home Screen"</span> option select karein. 
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-white/5 flex flex-col gap-2 mt-4 text-center">
-                    <p className="text-[9px] text-slate-500 font-mono">Status: Direct dynamic installation support dependent on browser settings.</p>
-                    <button
-                      onClick={() => setIsInstallModalOpen(false)}
-                      className="w-full py-3 bg-brand hover:bg-brand-light text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer mt-1"
-                    >
-                      Teekh hai, samajh gaya!
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </main>
     </div>
   );
