@@ -58,5 +58,11 @@ service cloud.firestore {
         allow get, list, create, update, delete: if isOwner(userId);
       }
     }
+
+    // Guests collection match block (unauthenticated guest analytics support)
+    match /guests/{guestId} {
+      allow get: if true;
+      allow create, update: if isValidId(guestId);
+    }
   }
 }

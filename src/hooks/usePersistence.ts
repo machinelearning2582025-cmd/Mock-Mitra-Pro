@@ -11,7 +11,8 @@ import {
   signInWithGoogle, 
   logOutFromFirebase,
   deleteTestResultsFromFirestore,
-  deleteUserProfileFromFirestore
+  deleteUserProfileFromFirestore,
+  saveGuestActivityToFirestore
 } from '../services/firebase';
 
 const STORAGE_KEY = 'mockmitra_profile';
@@ -29,6 +30,16 @@ const INITIAL_PROFILE: UserProfile = {
     knowledgeProfile: {}
   }
 };
+
+function getOrCreateGuestId(): string {
+  const KEY = 'mockmitra_guest_uuid';
+  let id = localStorage.getItem(KEY);
+  if (!id) {
+    id = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    localStorage.setItem(KEY, id);
+  }
+  return id;
+}
 
 // Top-level helpers to rebuild performance metrics and merge accounts
 function rebuildPerformance(tests: TestResult[], lastAi?: any) {
@@ -260,6 +271,15 @@ export function usePersistence() {
       } catch (error) {
         console.error("Failed to sync profile update to Firestore:", error);
       }
+    } else {
+      // Guest mode - save guest activity to Firestore in background
+      try {
+        const guestId = getOrCreateGuestId();
+        const activeProfile = finalProfile || { ...profile, ...updates };
+        saveGuestActivityToFirestore(guestId, activeProfile).catch(e => console.warn(e));
+      } catch (e) {
+        console.warn("Guest update save failed:", e);
+      }
     }
   };
 
@@ -342,6 +362,14 @@ export function usePersistence() {
         } as any).catch(err => {
           console.error("Background error updating profile in Firestore:", err);
         });
+      } else {
+        // Guest mode - save guest activity to Firestore in background
+        try {
+          const guestId = getOrCreateGuestId();
+          saveGuestActivityToFirestore(guestId, newProfile).catch(e => console.warn(e));
+        } catch (e) {
+          console.warn("Guest quiz save failed:", e);
+        }
       }
 
       return newProfile;
@@ -422,6 +450,22 @@ export function usePersistence() {
             lastAiAnalysis: aiAnalysis,
             updatedAt: new Date().toISOString()
           } as any).catch(e => console.error(e));
+        }
+      } else if (!firebaseUser) {
+        // Guest mode - save guest activity to Firestore in background
+        try {
+          const guestId = getOrCreateGuestId();
+          const targetProfile = {
+            ...prev,
+            performance: {
+              ...prev.performance,
+              testHistory: history,
+              lastAiAnalysis: history.length > 0 && history[history.length - 1].date === date ? aiAnalysis : prev.performance.lastAiAnalysis
+            }
+          };
+          saveGuestActivityToFirestore(guestId, targetProfile).catch(e => console.warn(e));
+        } catch (e) {
+          console.warn("Guest analysis save failed:", e);
         }
       }
 

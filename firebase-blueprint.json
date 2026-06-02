@@ -93,6 +93,43 @@
         }
       },
       "required": ["date", "score", "total", "timeSpent", "subject"]
+    },
+    "GuestActivity": {
+      "title": "GuestActivity",
+      "description": "Stores tracking and performance details of anonymous/guest users for application statistics.",
+      "type": "object",
+      "properties": {
+        "guestId": {
+          "type": "string",
+          "description": "A unique persisted client-generated ID for the guest user."
+        },
+        "name": {
+          "type": "string",
+          "description": "The custom name entered by the guest."
+        },
+        "exam": {
+          "type": "string",
+          "description": "The competitive exam specified by the guest."
+        },
+        "language": {
+          "type": "string",
+          "description": "Selected language by the guest."
+        },
+        "onboarded": {
+          "type": "boolean",
+          "description": "Onboarding completion status."
+        },
+        "performance": {
+          "type": "object",
+          "description": "Complete performance block, including streak, strong/weak topics, knowledge Profile, and testHistory snapshot."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the last guest activity update."
+        }
+      },
+      "required": ["guestId", "onboarded"]
     }
   },
   "firestore": {
@@ -103,6 +140,10 @@
     "users/{userId}/tests/{testId}": {
       "schema": "TestResult",
       "description": "Subcollection to isolate individual test histories dynamically and prevent document sizing overflow."
+    },
+    "guests/{guestId}": {
+      "schema": "GuestActivity",
+      "description": "Collection where anonymous guest profile details and test completions are recorded for application statistics."
     }
   }
 }

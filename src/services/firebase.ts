@@ -111,6 +111,37 @@ export async function saveUserProfileToFirestore(uid: string, profile: any): Pro
   }
 }
 
+export async function saveGuestActivityToFirestore(guestId: string, profile: UserProfile): Promise<void> {
+  const guestDocRef = doc(db, 'guests', guestId);
+  try {
+    await setDoc(guestDocRef, {
+      guestId,
+      name: profile.name || '',
+      exam: profile.exam || '',
+      language: profile.language || '',
+      onboarded: profile.onboarded || false,
+      performance: {
+        streak: profile.performance.streak || 0,
+        strongTopics: profile.performance.strongTopics || [],
+        weakTopics: profile.performance.weakTopics || [],
+        knowledgeProfile: profile.performance.knowledgeProfile || {},
+        testHistoryCount: profile.performance.testHistory?.length || 0,
+        testHistorySnapshot: profile.performance.testHistory?.map(t => ({
+          date: t.date,
+          score: t.score,
+          total: t.total,
+          timeSpent: t.timeSpent,
+          subject: t.subject
+        })) || []
+      },
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (error) {
+    // Fail silently or handle error without crashing the application for a guest
+    console.warn("Silent guest save failed:", error);
+  }
+}
+
 // Subcollection for storing isolated test results dynamically (prevents 1MB document limit)
 export async function saveTestResultToFirestore(uid: string, result: TestResult): Promise<void> {
   // Use dates/timestamp or dynamic document ID as testId
