@@ -7,6 +7,7 @@ import TestRunner from './components/TestRunner';
 import ResultView from './components/ResultView';
 import DrillSetupModal from './components/DrillSetupModal';
 import AccountModal from './components/AccountModal';
+import PWAInstallModal from './components/PWAInstallModal';
 import { usePersistence } from './hooks/usePersistence';
 import { QUESTIONS } from './data/questions';
 import { generateQuestionsAPI, analyzePerformanceAPI, updatePersonalisedProfileBackgroundAPI } from './services/api';
@@ -103,6 +104,45 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDrillSetupOpen, setIsDrillSetupOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+
+  // PWA Prompting States & Event Handlers
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isPWAInstallModalOpen, setIsPWAInstallModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      // Auto-show modal on first prompt detection if not prompted before
+      const runningStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+      const alreadyPrompted = localStorage.getItem('mockmitra_pwa_prompted') === 'true';
+      if (!runningStandalone && !alreadyPrompted) {
+        setIsPWAInstallModalOpen(true);
+        localStorage.setItem('mockmitra_pwa_prompted', 'true');
+      }
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Initial check for first load (in case event isn't fired or supported, we still guide the user)
+    const runningStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+    const alreadyPrompted = localStorage.getItem('mockmitra_pwa_prompted') === 'true';
+    if (!runningStandalone && !alreadyPrompted) {
+      // Small timeout to let the app settle before popping up
+      const timer = setTimeout(() => {
+        setIsPWAInstallModalOpen(true);
+        localStorage.setItem('mockmitra_pwa_prompted', 'true');
+      }, 3000);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   const viewTestResult = async (result: any) => {
     setLastResults(result);
@@ -353,6 +393,7 @@ export default function App() {
           <Hero 
             onStart={() => setAppState('onboarding')} 
             onStartGoogle={handleStartPractice}
+            onInstallClick={() => setIsPWAInstallModalOpen(true)}
           />
         )}
         
@@ -412,6 +453,23 @@ export default function App() {
               onNextTest={() => startNewTest()}
             />
         )}
+
+        {/* PWA Automatic Installation Alert Prompt */}
+        <AnimatePresence>
+          {isPWAInstallModalOpen && (
+            <PWAInstallModal
+              isOpen={isPWAInstallModalOpen}
+              onClose={() => setIsPWAInstallModalOpen(false)}
+              deferredPrompt={deferredPrompt}
+              onInstalledSuccess={() => {
+                const runningStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+                if (runningStandalone) {
+                  setIsPWAInstallModalOpen(false);
+                }
+              }}
+            />
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );

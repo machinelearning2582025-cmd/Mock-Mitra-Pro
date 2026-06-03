@@ -1,12 +1,13 @@
 import { motion } from 'motion/react';
-import { Target, Zap, Users, ArrowRight } from 'lucide-react';
+import { Target, Zap, Users, ArrowRight, Smartphone } from 'lucide-react';
 
 interface HeroProps {
   onStart: () => void;
   onStartGoogle?: () => void;
+  onInstallClick?: () => void;
 }
 
-export default function Hero({ onStart, onStartGoogle }: HeroProps) {
+export default function Hero({ onStart, onStartGoogle, onInstallClick }: HeroProps) {
   return (
     <div className="relative overflow-hidden pt-8 sm:pt-12 pb-16 sm:pb-24 px-4 sm:px-6 bg-[#0A0C10]">
       <div className="max-w-7xl mx-auto">
@@ -83,6 +84,32 @@ export default function Hero({ onStart, onStartGoogle }: HeroProps) {
               <div className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mt-2 opacity-60">{stat.label}</div>
             </div>
           ))}
+
+          {/* Bottom PWA Install Banner */}
+          {onInstallClick && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="md:col-span-12 mt-4 p-5 sm:p-6 bento-card bg-gradient-to-r from-[#11131c] via-[#0D1017] to-brand/5 border-brand/20 flex flex-col md:flex-row items-center justify-between gap-5 shadow-[0_4px_30px_rgba(37,99,235,0.08)]"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand shrink-0 shadow-inner">
+                  <Smartphone className="w-6 h-6 flex animate-pulse" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-base font-black text-white uppercase tracking-wider">Install Mock-Mitra-Pro App ⚡</h4>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">Apne smartphone ki home-screen se direct quick login, dynamic mock tests aur smart AI updates access karein. Low storage use!</p>
+                </div>
+              </div>
+              <button
+                onClick={onInstallClick}
+                className="w-full md:w-auto px-6 py-3 bg-brand hover:bg-brand-light text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer text-center whitespace-nowrap"
+              >
+                Install App 📱
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

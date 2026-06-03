@@ -1,0 +1,16 @@
+{
+  "name": "MockMitra",
+  "short_name": "MockMitra",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F1117",
+  "theme_color": "#0F1117",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 256x256 384x384 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
