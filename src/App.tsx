@@ -108,41 +108,60 @@ export default function App() {
   // PWA Prompting States & Event Handlers
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isPWAInstallModalOpen, setIsPWAInstallModalOpen] = useState(false);
+  const [isPWAInstalled, setIsPWAInstalled] = useState(false);
 
   useEffect(() => {
+    const checkIsPWA = () => {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         (window.navigator as any).standalone === true ||
+                         localStorage.getItem('pwa_installed_mockmitra') === 'true';
+      setIsPWAInstalled(standalone);
+    };
+    checkIsPWA();
+
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
       // Auto-show modal on first prompt detection if not prompted before
       const runningStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
       const alreadyPrompted = localStorage.getItem('mockmitra_pwa_prompted') === 'true';
-      if (!runningStandalone && !alreadyPrompted) {
+      if (!runningStandalone && !alreadyPrompted && !isPWAInstalled) {
         setIsPWAInstallModalOpen(true);
         localStorage.setItem('mockmitra_pwa_prompted', 'true');
       }
     };
 
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setIsPWAInstalled(true);
+      localStorage.setItem('pwa_installed_mockmitra', 'true');
+      console.log('App successfully installed!');
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     // Initial check for first load (in case event isn't fired or supported, we still guide the user)
     const runningStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
     const alreadyPrompted = localStorage.getItem('mockmitra_pwa_prompted') === 'true';
-    if (!runningStandalone && !alreadyPrompted) {
+    let timer: any = null;
+    if (!runningStandalone && !alreadyPrompted && !isPWAInstalled) {
       // Small timeout to let the app settle before popping up
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setIsPWAInstallModalOpen(true);
         localStorage.setItem('mockmitra_pwa_prompted', 'true');
       }, 3000);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      };
     }
+
+    const interval = setInterval(checkIsPWA, 2000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+      if (timer) clearTimeout(timer);
+      clearInterval(interval);
     };
-  }, []);
+  }, [isPWAInstalled]);
 
   const viewTestResult = async (result: any) => {
     setLastResults(result);
@@ -181,10 +200,15 @@ export default function App() {
       const weak = profile.performance.weakTopics;
       const defaultTopics = examConfig?.defaultTopics || ['General Awareness', 'Quantitative Aptitude', 'English Language', 'Reasoning'];
       
-      // If specific topics passed, use them. Otherwise use weak topics + defaults.
-      const topics: Topic[] = specificTopics && specificTopics.length > 0 
-        ? specificTopics 
-        : (weak.length > 0 ? Array.from(new Set([...weak, ...defaultTopics])).slice(0, 5) : defaultTopics);
+      // If user provided custom setup (prompt/files), focus strictly on those custom materials.
+      const isCustomDrill = setup && (setup.customPrompt || (setup.files && setup.files.length > 0));
+      
+      // If specific topics passed, use them. If custom drill, use custom material placeholder. Otherwise, use weak/defaults.
+      const topics: Topic[] = isCustomDrill
+        ? ['Custom Uploads / Specific Instructions']
+        : (specificTopics && specificTopics.length > 0 
+          ? specificTopics 
+          : (weak.length > 0 ? Array.from(new Set([...weak, ...defaultTopics])).slice(0, 5) : defaultTopics));
       
       const generatedQuestions = await generateQuestionsAPI(
         topics, 
@@ -393,7 +417,7 @@ export default function App() {
           <Hero 
             onStart={() => setAppState('onboarding')} 
             onStartGoogle={handleStartPractice}
-            onInstallClick={() => setIsPWAInstallModalOpen(true)}
+            onInstallClick={!isPWAInstalled ? () => setIsPWAInstallModalOpen(true) : undefined}
           />
         )}
         
@@ -414,6 +438,8 @@ export default function App() {
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
             onClearTestHistory={clearTestHistory}
             onClearChatHistory={clearChatHistory}
+            onInstallClick={() => setIsPWAInstallModalOpen(true)}
+            showInstallButton={!isPWAInstalled}
           />
         )}
 

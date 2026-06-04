@@ -199,9 +199,15 @@ export async function generateQuestionsAPI(
         You are a highly skilled academic exam paper setter and senior subject specialist for ${examType}.
         Your goal is to curate a set of ${count} high-quality, relevant, and accurate questions or problems for the following topics/subjects: ${topics.join(", ")}.
 
-        CRITICAL TOPIC BALANCING RULE:
+        CRITICAL TOPIC BALANCING RULE (Only applicable when NO custom materials/instructions are attached):
         You MUST generate a balanced set of questions representing ALL subjects/topics provided: ${topics.join(", ")}. 
-        Do not focus exclusively on only one or two categories (like only Math or Science) if multiple subjects are requested. Distribute the ${count} questions across all these topics as evenly as possible.
+        Do not focus exclusively on only one or two categories if multiple subjects are requested.
+
+        --- STRICT CUSTOM FOCUS RULE ---
+        IF the user has provided any custom setup prompt, topic, text description or uploaded files/images:
+        - You MUST design the exam questions EXCLUSIVELY and STRICTLY based on that custom material / prompt.
+        - DO NOT generate standard general mock questions from the general ${examType} default syllabus unless explicitly instructed.
+        - Your highest priority is to test the specific concepts, facts, equations, and rules contained in the custom material or custom topic.
 
         --- CUSTOM SETUP & CONTEXT ---
         
@@ -217,7 +223,7 @@ export async function generateQuestionsAPI(
 
         3. PRIMARY INSTRUCTIONAL DETAIL:
            - Curriculum Guidelines: ${patternInstructions}
-           ${customText ? `- USER DIRECTIVE: "${customSetup?.customPrompt}". (Prioritize this core instruction if provided).` : ""}
+           ${customText ? `- USER DIRECTIVE / CUSTOM TOPIC: "${customSetup?.customPrompt}". (Prioritize this core instruction if provided).` : ""}
            ${videoContext ? `- VIDEO REF SOURCE: ${videoContext}` : ""}
 
         4. PROFILE-DRIVEN ADAPTATIONS:
@@ -227,6 +233,15 @@ export async function generateQuestionsAPI(
 
         5. CORE STUDY SCHEME SYSTEM:
            ${studySchemePrompt ? `- ${studySchemePrompt}` : ""}
+
+        --- MATHEMATICAL, CHEMICAL, AND SCIENTIFIC FORMATTING DISCIPLINE (CRITICAL) ---
+        - NEVER EVER output raw LaTeX code, math markup syntax (such as \\( \\), \\[ \\], $$, $, \\frac{...}, \\sqrt{...}, \\sum_{...}^{...},_ etc.) or code blocks inside the questions, options, or explanations.
+        - ALWAYS format math equations using beautiful, clean, highly compatible Unicode characters and clean linear notation so it looks perfectly styled on standard screen fonts.
+        - Exponents: Use superscripts (e.g., x², y³, 10⁻⁵, 2ⁿ). Do NOT use LaTeX ^ symbol if possible.
+        - Fractions: Use standard slash notation with bracket grouping (e.g., (a + b) / (c - d) or 3/4).
+        - Roots: Use the square root symbol √ (e.g., √(x² + y²)).
+        - Operations/Symbols: Use clean mathematical unicode elements like ±, ÷, ×, =, ≠, ≤, ≥, ≈, °, π, θ, α, β, Δ.
+        - This rule applies to both the generated 'question' stems, 'options', and 'explanation' fields!
 
         --- EXQUISITE QUALITY & GENERATION DISCIPLINE ---
         - NO DUMMY PLACEHOLDERS: Generate fully formed, factually correct, logically sound questions.
@@ -623,6 +638,14 @@ export async function chatWithMitraAPI(
     1. Avoid "phaltu ke sabd" (extravagant conversational filler words, over-friendly preambles, redundant details, and boilerplate text). Get straight to the answer.
     2. Respond in as FEW lines as possible (kam lines me output aaye). Be extremely concise, short, and to-the-point (target 2-4 sentences max, unless responding to a detailed custom request like an explanation of a multi-step formula).
     
+    --- MATHEMATICAL & SCIENTIFIC FORMATTING DISCIPLINE (CRITICAL) ---
+    - NEVER EVER use raw LaTeX syntax, code formulas, or markup delimiters (like \\( \\), \\[ \\], $$, $, \\frac{...}, \\sqrt{...}, \\sum_{...}^{...} etc.) in your messages or explanations.
+    - ALWAYS write mathematical or scientific content using standard, beautifully styled Unicode characters and linear layouts so they render perfectly on cell phones and web dashboards.
+    - Exponents: Use standard superscripts (e.g., x², y³, 10⁻⁵, xⁿ).
+    - Fractions: Use readable division styles (e.g., (x + 2)/4 or 2/3).
+    - Roots: Use the √ symbol (e.g., √(x² + y²)).
+    - Symbols: Use standard unicode operators like ±, ÷, ×, =, ≠, ≤, ≥, ≈, °, π, θ, α, β, Δ.
+
     If the user asks you to save a specific target, concept, or update their custom notes/goals, remind them that they can type/update it in the 'My Saved Study Context' desk or mention: "Done! Aap apne study notes space me save kar sakte hain so I always remember."
     Keep responses clear, concise, and beautifully formatted using Markdown. Ensure you use bullet points and bold headers.
   `;

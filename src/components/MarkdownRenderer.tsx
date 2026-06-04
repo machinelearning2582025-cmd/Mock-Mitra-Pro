@@ -4,11 +4,86 @@ interface MarkdownRendererProps {
   text: string;
 }
 
+// Pre-process raw LaTeX formulas, braces and code containers to beautiful Unicode symbols
+const preprocessMathText = (input: string): string => {
+  if (!input) return "";
+  
+  let result = input;
+  
+  // 1. Block LaTeX wrappers \\[ ... \\] and $$ ... $$ -> clean text block
+  result = result.replace(/\\\[([\s\S]*?)\\\]/g, " $1 ");
+  result = result.replace(/\$\$([\s\S]*?)\$\$/g, " $1 ");
+  
+  // 2. Inline LaTeX wrappers \\( ... \\), $ ... $ -> clean inline text
+  result = result.replace(/\\\\\(([\s\S]*?)\\\\\)/g, " $1 ");
+  result = result.replace(/\\\(([\s\S]*?)\\\)/g, " $1 ");
+  result = result.replace(/\$([\s\S]*?)\$/g, " $1 ");
+  
+  // 3. Translation of various raw LaTeX symbols & structures into clean screen-readable Unicode
+  const translations: { regex: RegExp; replacement: string }[] = [
+    // Fractions \frac{a}{b} -> (a)/(b)
+    { regex: /\\frac\s*\{\s*([^{}]+?)\s*\}\s*\{\s*([^{}]+?)\s*\}/g, replacement: "($1)/($2)" },
+    // Square root \sqrt{a} -> √(a)
+    { regex: /\\sqrt\s*\{\s*([^{}]+?)\s*\}/g, replacement: "√($1)" },
+    // Common exponents
+    { regex: /\^\{\s*2\s*\}/g, replacement: "²" },
+    { regex: /\^\{\s*3\s*\}/g, replacement: "³" },
+    { regex: /\^2/g, replacement: "²" },
+    { regex: /\^3/g, replacement: "³" },
+    { regex: /\^\{\s*([^{}]+?)\s*\}/g, replacement: "^($1)" },
+    
+    // Basic scientific commands
+    { regex: /\\times/g, replacement: " × " },
+    { regex: /\\div/g, replacement: " ÷ " },
+    { regex: /\\pm/g, replacement: " ± " },
+    { regex: /\\ne/g, replacement: " ≠ " },
+    { regex: /\\le/g, replacement: " ≤ " },
+    { regex: /\\ge/g, replacement: " ≥ " },
+    { regex: /\\propto/g, replacement: " ∝ " },
+    { regex: /\\approx/g, replacement: " ≈ " },
+    { regex: /\\infty/g, replacement: " ∞ " },
+    { regex: /\\degree/g, replacement: "°" },
+    { regex: /\\circ/g, replacement: "°" },
+    
+    // Greek alphabet
+    { regex: /\\pi/g, replacement: "π" },
+    { regex: /\\theta/g, replacement: "θ" },
+    { regex: /\\alpha/g, replacement: "α" },
+    { regex: /\\beta/g, replacement: "β" },
+    { regex: /\\delta/g, replacement: "δ" },
+    { regex: /\\Delta/g, replacement: "Δ" },
+    { regex: /\\sigma/g, replacement: "σ" },
+    { regex: /\\lambda/g, replacement: "λ" },
+    { regex: /\\mu/g, replacement: "μ" },
+    { regex: /\\phi/g, replacement: "φ" },
+    { regex: /\\omega/g, replacement: "ω" },
+    
+    // Layout and spacing cleans
+    { regex: /\\bold/g, replacement: "" },
+    { regex: /\\mathrm/g, replacement: "" },
+    { regex: /\\text/g, replacement: "" },
+    { regex: /\\qquad/g, replacement: "   " },
+    { regex: /\\quad/g, replacement: "  " },
+  ];
+  
+  translations.forEach(({ regex, replacement }) => {
+    // Run multiple passes for nested structures (e.g. nested fractions)
+    result = result.replace(regex, replacement);
+    result = result.replace(regex, replacement);
+  });
+  
+  // Final clean up of multiple spaces or orphaned bracket symbols
+  result = result.replace(/\\\{/g, "{").replace(/\\\}/g, "}");
+  
+  return result;
+};
+
 export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
   if (!text) return null;
 
-  // Split text by lines
-  const lines = text.split('\n');
+  // Clean raw math expressions and symbols to look pristine
+  const cleanedText = preprocessMathText(text);
+  const lines = cleanedText.split('\n');
 
   // Inline styling parser: parses **, *, ` into colored/styled React elements
   const parseInlineStyles = (content: string): React.ReactNode[] => {
