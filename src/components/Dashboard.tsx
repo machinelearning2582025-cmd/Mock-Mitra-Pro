@@ -80,14 +80,26 @@ export default function Dashboard({
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex shrink-0"
+          className="flex shrink-0 relative group"
         >
-          <button 
+          {/* Subtle glowing halo pulsing in the background */}
+          <span className="absolute -inset-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-brand via-purple-600 to-indigo-600 opacity-75 blur-md animate-pulse group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></span>
+          
+          <motion.button 
+            id="start-practice-btn"
             onClick={onStartTest}
-            className="w-full sm:w-auto flex items-center justify-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-brand text-white font-black rounded-xl sm:rounded-2xl shadow-xl shadow-brand/30 hover:bg-brand-light transition-all active:scale-95 uppercase tracking-widest text-[10px] sm:text-sm"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative w-full sm:w-auto flex items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-[#2563EB] to-indigo-600 hover:from-brand-light hover:to-indigo-500 text-white font-black rounded-xl sm:rounded-2xl shadow-2xl shadow-brand/50 hover:shadow-brand/80 transition-all cursor-pointer uppercase tracking-widest text-xs sm:text-sm border border-white/20 hover:border-white/40 shrink-0"
           >
-            Start Practice Session <Zap className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-          </button>
+            {/* Active pulsing notification dot to draw focus */}
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+            </span>
+            <span>Start Practice Session</span>
+            <Zap className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 fill-current text-white animate-bounce" />
+          </motion.button>
         </motion.div>
       </header>
 
