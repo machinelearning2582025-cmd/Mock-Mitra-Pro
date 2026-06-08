@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Target, User, LogOut } from 'lucide-react';
+import { Target, User, LogOut, Download } from 'lucide-react';
 import Logo from './Logo';
 
 interface NavbarProps {
@@ -9,6 +9,8 @@ interface NavbarProps {
   onLogout?: () => void;
   firebaseUser?: any;
   onLoginWithGoogle?: () => Promise<any>;
+  onInstallClick?: () => void;
+  showInstallButton?: boolean;
 }
 
 export default function Navbar({ 
@@ -17,18 +19,40 @@ export default function Navbar({
   userName, 
   onLogout, 
   firebaseUser,
-  onLoginWithGoogle
+  onLoginWithGoogle,
+  onInstallClick,
+  showInstallButton
 }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-50 glass border-b border-white/5 px-4 sm:px-6 py-4">
       <div className="w-full flex items-center justify-between">
-        <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => onProfileClick?.()}>
-          <Logo className="w-10 h-10 hover:scale-105 transition-transform" />
-          <div className="flex flex-col">
-            <span className="text-xl sm:text-2xl font-black font-display tracking-tight text-white uppercase leading-none">
-              Mock-<span className="text-brand">Mitra</span>
-            </span>
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div 
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer" 
+            onClick={() => onProfileClick?.()}
+          >
+            <Logo className="w-8 h-8 sm:w-10 sm:h-10 hover:scale-105 transition-transform" />
+            <div className="flex flex-col">
+              <span className="text-lg sm:text-2xl font-black font-display tracking-tight text-white uppercase leading-none">
+                Mock-<span className="text-brand">Mitra</span>
+              </span>
+            </div>
           </div>
+
+          {showInstallButton && onInstallClick && (
+            <motion.button
+              id="navbar-install-btn"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onInstallClick}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-gradient-to-r from-brand to-indigo-600 hover:from-brand-light hover:to-indigo-500 text-white font-black rounded-xl text-[9px] sm:text-[10px] uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-brand/25 animate-pulse border border-white/10 shrink-0 ml-1 sm:ml-2"
+            >
+              <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+              <span>Install ⚡</span>
+            </motion.button>
+          )}
         </div>
 
         <div className="flex items-center gap-3 sm:gap-6">

@@ -391,6 +391,8 @@ export default function App() {
           onLogout={handleLogout}
           firebaseUser={firebaseUser}
           onLoginWithGoogle={handleLoginWithGoogle}
+          showInstallButton={appState === 'landing'}
+          onInstallClick={() => setIsPWAInstallModalOpen(true)}
         />
       )}
 
