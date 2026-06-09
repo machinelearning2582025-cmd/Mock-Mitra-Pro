@@ -197,17 +197,24 @@ export async function generateQuestionsAPI(
     {
       text: `
         You are a highly skilled academic exam paper setter and senior subject specialist for ${examType}.
-        Your goal is to curate a set of ${count} high-quality, relevant, and accurate questions or problems for the following topics/subjects: ${topics.join(", ")}.
+        Your goal is to curate a set of ${count} high-quality, relevant, and accurate questions or problems.
 
-        CRITICAL TOPIC BALANCING RULE (Only applicable when NO custom materials/instructions are attached):
+        ========================================================================
+        🚨 CRITICAL SUPREME DIRECTIVE: PRIORITIZE USER CUSTOM MATERIAL & CUSTOM INSTRUCTIONS/TOPICS ABOVE ALL ELSE 🚨
+        ========================================================================
+        The user has custom-tailored this practice session. You MUST give the user's provided instructions, uploaded files/images, reference material, or custom topic absolute 100% supreme priority, overriding any standard, generic, or defaulted syllabus/structures.
+        
+        - IF the user has uploaded any material (files/images) OR provided a custom instruction, custom topic, or prompt:
+          1. Every single one of the generated ${count} questions MUST be crafted strictly and exclusively based on the facts, concepts, text, rules, and mathematical equations contained within those specified custom materials, files, images, or specific customs prompts.
+          2. You are FORBIDDEN from generating standard mock questions from the default general syllabus of ${examType} unless it directly matches what the user's custom material or custom prompt specifies.
+          3. If the user's instructions ask for a specific chapter, topic, or language style, you must fulfill it exactly.
+          4. In the 'explanation' field of each generated question, include a specific note explaining how it directly matches the user's prompt or uploaded files (e.g. "[Custom prompt based / File fact]: ..."), so the user enjoys a fully personalized, dedicated practice experience.
+        - ONLY when no custom materials, files, images, or custom prompts are attached or specified, you should fall back to generating general balanced mock questions for the subjects: ${topics.join(", ")}.
+
+        ========================================================================
+        CRITICAL TOPIC BALANCING RULE (Only applicable when NO custom materials or prompts are provided):
         You MUST generate a balanced set of questions representing ALL subjects/topics provided: ${topics.join(", ")}. 
         Do not focus exclusively on only one or two categories if multiple subjects are requested.
-
-        --- STRICT CUSTOM FOCUS RULE ---
-        IF the user has provided any custom setup prompt, topic, text description or uploaded files/images:
-        - You MUST design the exam questions EXCLUSIVELY and STRICTLY based on that custom material / prompt.
-        - DO NOT generate standard general mock questions from the general ${examType} default syllabus unless explicitly instructed.
-        - Your highest priority is to test the specific concepts, facts, equations, and rules contained in the custom material or custom topic.
 
         --- CUSTOM SETUP & CONTEXT ---
         
@@ -223,7 +230,7 @@ export async function generateQuestionsAPI(
 
         3. PRIMARY INSTRUCTIONAL DETAIL:
            - Curriculum Guidelines: ${patternInstructions}
-           ${customText ? `- USER DIRECTIVE / CUSTOM TOPIC: "${customSetup?.customPrompt}". (Prioritize this core instruction if provided).` : ""}
+           ${customText ? `- USER DIRECTIVE / CUSTOM TOPIC / CUSTOM MANUAL INSTRUCTION: "${customSetup?.customPrompt}". (This must be the core source of truth!).` : ""}
            ${videoContext ? `- VIDEO REF SOURCE: ${videoContext}` : ""}
 
         4. PROFILE-DRIVEN ADAPTATIONS:
