@@ -10,7 +10,7 @@ if (!apiKey) {
 }
 const ai = new GoogleGenAI({ apiKey: apiKey || "dummy_key" });
 
-const MODEL_FLASH = "gemini-3.5-flash";
+const MODEL_FLASH = "gemini-3.1-flash-lite";
 const MODEL_LITE = "gemini-3.1-flash-lite";
 
 export async function analyzePerformanceAPI(
@@ -250,10 +250,11 @@ export async function generateQuestionsAPI(
         - Operations/Symbols: Use clean mathematical unicode elements like ±, ÷, ×, =, ≠, ≤, ≥, ≈, °, π, θ, α, β, Δ.
         - This rule applies to both the generated 'question' stems, 'options', and 'explanation' fields!
 
-        --- EXQUISITE QUALITY & GENERATION DISCIPLINE ---
+        --- EXQUISITE QUALITY & GENERATION DISCIPLINE (SPEED OPTIMIZED) ---
         - NO DUMMY PLACEHOLDERS: Generate fully formed, factually correct, logically sound questions.
         - GOOD DISTRACTORS: All alternative choices must be plausible, reflecting common misunderstandings or typical student errors.
-        - DIRECT, HIGH-DENSITY EXPLANATIONS: Avoid conversational intros or prefaces. Explanations must directly explain why the correct option is true and briefly why others are incorrect, keeping the response fast but extremely clear.
+        - DIRECT, ULTRA-CONCISE EXPLANATIONS: Do NOT write long or conversational intros/prefaces. Explain why the correct option is true and briefly why others are incorrect, keeping the explanation under 1-2 short, direct, highly compact sentences. Fewer generated words mean extremely fast loading for the student.
+        - SHORT COMPACT QUESTIONS: Keep question stems, choices, and option text fields very compact and concise.
         - PREVENT REPETITION: Do not reuse or duplicate question concepts resembling the following IDs: ${avoidIds.slice(0, 20).join(", ")}.
 
         Return the response strictly as a JSON array matching the specified JSON schema.
