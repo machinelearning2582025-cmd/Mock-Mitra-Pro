@@ -141,17 +141,28 @@ export async function generateQuestionsAPI(
   const examConfig = getExamConfig(examType);
   let patternInstructions = examConfig?.patternInstructions || "Standard competitive exam pattern.";
   
-  // If user provided custom details, use them to override or augment pattern
-  if (effectiveCustomExamDetails && effectiveCustomExamDetails.trim() !== "") {
-    patternInstructions = `THE USER HAS PROVIDED SPECIFIC EXAM/SUBJECT REQUIREMENTS: ${effectiveCustomExamDetails}. Ignore generic competitive exam personas and focus strictly on these requirements.`;
-  }
-  
   const isCustomMode = !!(
     customSetup?.customTopic || 
     customSetup?.customPrompt || 
     (customSetup?.files && customSetup.files.length > 0) || 
     (effectiveCustomExamDetails && effectiveCustomExamDetails.trim() !== "")
   );
+
+  // If we are in custom mode, we do NOT want general exam patternInstructions to pollute the prompt.
+  // We completely wipe out general patternInstructions and replace it with strict topic isolation.
+  if (isCustomMode) {
+    if (customSetup?.customTopic) {
+      patternInstructions = `STRICT TOPIC ISOLATION MODE: You must generate questions 100% EXCLUSIVELY about the user's specified topic, chapter, or concept: "${customSetup.customTopic}". Do NOT include general subjects of ${examType} (such as general maths, reasoning, English, GK, etc.) unless they are explicitly part of the custom topic: "${customSetup.customTopic}". Under no circumstances should questions fallback, reference, or belong to different default subjects.`;
+    } else if (effectiveCustomExamDetails && effectiveCustomExamDetails.trim() !== "") {
+      patternInstructions = `STRICT USER SPECIFICATIONS MODE: Generate questions matching these exact parameters: "${effectiveCustomExamDetails}". Do NOT include any general competitive subjects of ${examType} unless they explicitly align with these custom parameters/instructions.`;
+    } else if (customSetup?.customPrompt) {
+      patternInstructions = `STRICT PROMPT ALIGNMENT MODE: Generate questions based on these custom prompt instructions: "${customSetup.customPrompt}". Ignore general competitive subjects of ${examType}.`;
+    } else {
+      patternInstructions = `STRICT CUSTOM DRILL MODE: Generate questions based strictly on the uploaded reference documents/images. Ignore standard requirements of ${examType}.`;
+    }
+  } else if (effectiveCustomExamDetails && effectiveCustomExamDetails.trim() !== "") {
+    patternInstructions = `THE USER HAS PROVIDED SPECIFIC EXAM/SUBJECT REQUIREMENTS: ${effectiveCustomExamDetails}. Ignore generic competitive exam personas and focus strictly on these requirements.`;
+  }
 
   const weakTopicsContext = !isCustomMode && userPerformance?.weakTopics.length 
     ? `The user needs improvement in: ${userPerformance.weakTopics.join(", ")}. Focus on clarifying concepts in these areas.`
