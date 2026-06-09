@@ -200,16 +200,17 @@ export default function App() {
       const weak = profile.performance.weakTopics;
       const defaultTopics = examConfig?.defaultTopics || ['General Awareness', 'Quantitative Aptitude', 'English Language', 'Reasoning'];
       
-      // If user provided custom setup (prompt/files), focus strictly on those custom materials.
-      const isCustomDrill = setup && (setup.customPrompt || (setup.files && setup.files.length > 0));
+      // If user provided custom setup (topic/prompt/files), focus strictly on those custom materials.
+      const isCustomDrill = !!(setup && (setup.customTopic || setup.customPrompt || (setup.files && setup.files.length > 0)));
       
       // If specific topics passed, use them. If custom drill, use custom material placeholder. Otherwise, use weak/defaults.
       const topics: Topic[] = isCustomDrill
-        ? ['Custom Uploads / Specific Instructions']
+        ? [setup?.customTopic || 'Custom Uploads / Specific Instructions']
         : (specificTopics && specificTopics.length > 0 
           ? specificTopics 
           : (weak.length > 0 ? Array.from(new Set([...weak, ...defaultTopics])).slice(0, 5) : defaultTopics));
       
+      const isExplicitTopic = !!(specificTopics && specificTopics.length > 0) || !!(setup?.customTopic);
       const generatedQuestions = await generateQuestionsAPI(
         topics, 
         setup?.difficulty || 'Medium', 
@@ -220,7 +221,8 @@ export default function App() {
         setup,
         profile.customExamDetails,
         profile.language,
-        profile.aiMentorPlan?.milestones
+        profile.aiMentorPlan?.milestones,
+        isExplicitTopic
       );
 
       if (generatedQuestions.length > 0) {
@@ -434,7 +436,7 @@ export default function App() {
           <Dashboard 
             profile={profile} 
             onStartTest={() => setIsDrillSetupOpen(true)} 
-            onStartTopicTest={(topic) => startNewTest(undefined, [topic])}
+            onStartTopicTest={(topic) => startNewTest(undefined, Array.isArray(topic) ? topic : [topic])}
             onViewResult={viewTestResult}
             onUpdateProfile={updateProfile}
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}

@@ -11,6 +11,7 @@ interface DrillSetupModalProps {
 }
 
 export default function DrillSetupModal({ isOpen, onClose, onStart, exam }: DrillSetupModalProps) {
+  const [customTopic, setCustomTopic] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
   const [studyScheme, setStudyScheme] = useState<'PYQ & Important based' | 'Study based Imp' | 'Pure System'>('Pure System');
@@ -41,11 +42,13 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam }: Dril
 
   const handleSubmit = () => {
     onStart({ 
+      customTopic,
       customPrompt, 
       files, 
       difficulty,
       studyScheme
     });
+    setCustomTopic('');
     setCustomPrompt('');
     setDifficulty('Medium');
     setStudyScheme('Pure System');
@@ -86,6 +89,20 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam }: Dril
             </header>
 
             <div className="space-y-6 relative z-10 overflow-y-auto pr-2 custom-scrollbar flex-grow">
+              {/* Specific Chapter / Topic Target Input */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1 flex items-center gap-2">
+                  <Target className="w-3.5 h-3.5 text-brand" strokeWidth={3} /> Topic / Chapter / Concept
+                </label>
+                <input 
+                  type="text"
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  placeholder="E.g., Trigonometry, Biology Plant Cell, ancient history, etc."
+                  className="w-full px-4 py-3 bg-slate-900/80 border-2 border-white/5 rounded-xl focus:border-brand/60 focus:ring-1 focus:ring-brand/30 outline-none transition-all text-xs font-bold text-white placeholder:text-slate-700"
+                />
+              </div>
+
               {/* Difficulty Selection */}
               <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1 flex items-center gap-2">

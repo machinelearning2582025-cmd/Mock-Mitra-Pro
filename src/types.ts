@@ -72,6 +72,7 @@ export interface DrillFile {
 }
 
 export interface DrillSetup {
+  customTopic?: string;
   customPrompt?: string;
   files?: DrillFile[];
   difficulty?: 'Easy' | 'Medium' | 'Hard';

@@ -10,7 +10,7 @@ if (!apiKey) {
 }
 const ai = new GoogleGenAI({ apiKey: apiKey || "dummy_key" });
 
-const MODEL_FLASH = "gemini-3.1-flash-lite";
+const MODEL_FLASH = "gemini-3.5-flash";
 const MODEL_LITE = "gemini-3.1-flash-lite";
 
 export async function analyzePerformanceAPI(
@@ -56,13 +56,7 @@ export async function analyzePerformanceAPI(
   };
 
   try {
-    let response;
-    try {
-      response = await generate(MODEL_FLASH);
-    } catch (e) {
-      console.warn(`Primary model ${MODEL_FLASH} failed, using fallback ${MODEL_LITE}`);
-      response = await generate(MODEL_LITE);
-    }
+    const response = await generate(MODEL_LITE);
     const parsed = JSON.parse(response.text || "{}");
     if (parsed && parsed.summary && parsed.weakTopicAnalysis) {
       return parsed;
@@ -134,22 +128,35 @@ export async function generateQuestionsAPI(
   customSetup?: DrillSetup,
   customExamDetails?: string,
   language: string = "English",
-  milestones?: { title: string; completed: boolean }[]
+  milestones?: { title: string; completed: boolean }[],
+  isExplicitTopic: boolean = false
 ): Promise<Question[]> {
   if (!apiKey) return [];
+
+  // If the user explicitly clicked on a specific gap analysis topic or took a specific-topic test,
+  // we do NOT want general profile-level custom specifications/details (like 'Biology' instructions)
+  // to pollute or override this specific selected topic. In that case, we clear effectiveCustomExamDetails.
+  const effectiveCustomExamDetails = isExplicitTopic ? "" : (customExamDetails || "");
 
   const examConfig = getExamConfig(examType);
   let patternInstructions = examConfig?.patternInstructions || "Standard competitive exam pattern.";
   
   // If user provided custom details, use them to override or augment pattern
-  if (customExamDetails && customExamDetails.trim() !== "") {
-    patternInstructions = `THE USER HAS PROVIDED SPECIFIC EXAM/SUBJECT REQUIREMENTS: ${customExamDetails}. Ignore generic competitive exam personas and focus strictly on these requirements.`;
+  if (effectiveCustomExamDetails && effectiveCustomExamDetails.trim() !== "") {
+    patternInstructions = `THE USER HAS PROVIDED SPECIFIC EXAM/SUBJECT REQUIREMENTS: ${effectiveCustomExamDetails}. Ignore generic competitive exam personas and focus strictly on these requirements.`;
   }
   
-  const weakTopicsContext = userPerformance?.weakTopics.length 
+  const isCustomMode = !!(
+    customSetup?.customTopic || 
+    customSetup?.customPrompt || 
+    (customSetup?.files && customSetup.files.length > 0) || 
+    (effectiveCustomExamDetails && effectiveCustomExamDetails.trim() !== "")
+  );
+
+  const weakTopicsContext = !isCustomMode && userPerformance?.weakTopics.length 
     ? `The user needs improvement in: ${userPerformance.weakTopics.join(", ")}. Focus on clarifying concepts in these areas.`
     : "";
-  const strongTopicsContext = userPerformance?.strongTopics.length 
+  const strongTopicsContext = !isCustomMode && userPerformance?.strongTopics.length 
     ? `The user is strong in: ${userPerformance.strongTopics.join(", ")}. Ensure questions are challenging enough.`
     : "";
 
@@ -162,7 +169,7 @@ export async function generateQuestionsAPI(
     .map(m => m.title)
     .join(", ") || "";
 
-  const milestonesContext = completedMilestones || remainingMilestones
+  const milestonesContext = !isCustomMode && (completedMilestones || remainingMilestones)
     ? `STUDY ROADMAP PROGRESSIVE DETAILS (IMPORTANT CUSTOM TARGETS):
        - Recently mastered / studied chapter ticks (generate 1-2 recall/application questions here to hone active recall): ${completedMilestones || "None yet"}
        - Active/remaining focus milestones to test and build deep knowledge: ${remainingMilestones || "None yet"}`
@@ -202,18 +209,19 @@ export async function generateQuestionsAPI(
         ========================================================================
         🚨 CRITICAL SUPREME DIRECTIVE: PRIORITIZE USER CUSTOM MATERIAL & CUSTOM INSTRUCTIONS/TOPICS ABOVE ALL ELSE 🚨
         ========================================================================
-        The user has custom-tailored this practice session. You MUST give the user's provided instructions, uploaded files/images, reference material, or custom topic absolute 100% supreme priority, overriding any standard, generic, or defaulted syllabus/structures.
+        The user has custom-tailored this practice session. You MUST give the user's provided instructions, uploaded files/images, reference material, custom exam specifications, or custom topics absolute 100% supreme priority, overriding any standard, generic, or defaulted syllabus/structures.
         
-        - IF the user has uploaded any material (files/images) OR provided a custom instruction, custom topic, or prompt:
-          1. Every single one of the generated ${count} questions MUST be crafted strictly and exclusively based on the facts, concepts, text, rules, and mathematical equations contained within those specified custom materials, files, images, or specific customs prompts.
-          2. You are FORBIDDEN from generating standard mock questions from the default general syllabus of ${examType} unless it directly matches what the user's custom material or custom prompt specifies.
-          3. If the user's instructions ask for a specific chapter, topic, or language style, you must fulfill it exactly.
-          4. In the 'explanation' field of each generated question, include a specific note explaining how it directly matches the user's prompt or uploaded files (e.g. "[Custom prompt based / File fact]: ..."), so the user enjoys a fully personalized, dedicated practice experience.
-        - ONLY when no custom materials, files, images, or custom prompts are attached or specified, you should generate questions STRICTLY and EXCLUSIVELY for the specified topic(s): ${topics.join(", ")}.
-          You are FORBIDDEN from generating questions outside the specified topic(s). For example, if the topic is a specific chapter or concept, the entire set of questions must be on that precise concept.
+        - IF the user has provided any custom topic/chapter (e.g., customTopic: "${customSetup?.customTopic || ""}"), custom specifications/AI Instructions (e.g., custom study details: "${effectiveCustomExamDetails || ""}"), custom prompt/topic (e.g., "${customSetup?.customPrompt || ""}"), or uploaded files/images:
+          1. Every single one of the generated ${count} questions MUST be crafted strictly and exclusively based on the custom topic/chapter specified ("${customSetup?.customTopic || ""}"), or the facts, concepts, text, rules, subjects, or equations specified in those custom specifications / user directives / custom prompts.
+          2. E.g., if the user wrote "Biology", "Plant Cell", "Akbar", or a specific chapter, you are strictly forbidden from generating Chemistry, Math, History, or general aptitude questions unless it is the exact requested topic. You must generate 100% of the questions strictly on "${customSetup?.customTopic || ""}".
+          3. You are STRICTLY FORBIDDEN from generating standard mock questions from the default general syllabus of ${examType} (such as general maths, quantitative aptitude, english, or reasoning, unless they are explicitly specified in the custom instructions, e.g. "Biology" should have 100% Biology questions, "Trigonometry" should have 100% Trigonometry questions, etc.).
+          4. Do NOT look at or use the default backup topic list: [${topics.join(", ")}] if any custom topic ("${customSetup?.customTopic || ""}") or custom instructions (like "${effectiveCustomExamDetails || ""}" or "${customSetup?.customPrompt || ""}") are present. Fallback to standard syllabus subjects is illegal when a custom topic is requested.
+          5. In the 'explanation' field of each generated question, include a specific note explaining how it directly matches the user's custom instructions or custom topic or uploaded files (e.g. "[Custom Topic based / Fact]: ..."), so the user enjoys a fully personalized, dedicated practice experience.
+        - ONLY when absolutely NO custom topic ("${customSetup?.customTopic || ""}"), custom specifications ("${effectiveCustomExamDetails || ""}"), custom materials/files, or custom prompts/topics are attached or specified, you should generate questions STRICTLY and EXCLUSIVELY for the specified topic(s): ${topics.join(", ")}.
+          You are FORBIDDEN from generating questions outside the specified topic(s).
 
         ========================================================================
-        CRITICAL TOPIC ENFORCEMENT & BALANCING RULE (Only applicable when NO custom materials or prompts are provided):
+        CRITICAL TOPIC ENFORCEMENT & BALANCING RULE (Only applicable when NO custom materials, custom exam specifications, or prompts are provided):
         - You MUST generate 100% of the questions from the given topic(s): ${topics.join(", ")}.
         - Do NOT include any general mock questions or fallback filler questions from default subjects unless they are part of the specified list.
         - If multiple topics are provided, distribute the set of questions evenly and in balanced proportions across: ${topics.join(", ")}.
@@ -232,7 +240,8 @@ export async function generateQuestionsAPI(
 
         3. PRIMARY INSTRUCTIONAL DETAIL:
            - Curriculum Guidelines: ${patternInstructions}
-           ${customText ? `- USER DIRECTIVE / CUSTOM TOPIC / CUSTOM MANUAL INSTRUCTION: "${customSetup?.customPrompt}". (This must be the core source of truth!).` : ""}
+           ${customSetup?.customTopic ? `- SPECIFIC TARGET TOPIC / CHAPTER / CONCEPT: "${customSetup.customTopic}". (MUST 100% ONLY generate questions for this topic!).` : ""}
+           ${customText ? `- USER DIRECTIVE / CUSTOM MANUAL INSTRUCTION: "${customSetup?.customPrompt}". (This must be the core source of truth!).` : ""}
            ${videoContext ? `- VIDEO REF SOURCE: ${videoContext}` : ""}
 
         4. PROFILE-DRIVEN ADAPTATIONS:
@@ -439,13 +448,7 @@ export async function generateLearningStrategyAPI(
   };
 
   try {
-    let response;
-    try {
-      response = await generate(MODEL_FLASH);
-    } catch (e) {
-      console.warn(`Primary model failed, falling back`);
-      response = await generate(MODEL_LITE);
-    }
+    const response = await generate(MODEL_LITE);
     const data = JSON.parse(response.text || "{}");
     if (data && data.summary && data.milestones) {
       return {
@@ -735,7 +738,7 @@ export async function chatWithMitraAPI(
 
   try {
     const response = await ai.models.generateContent({
-      model: MODEL_FLASH,
+      model: MODEL_LITE,
       contents,
       config: {
         thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
@@ -745,19 +748,7 @@ export async function chatWithMitraAPI(
     return response.text || "Sorry, I couldn't formulate a response. Support system is offline.";
   } catch (err) {
     console.error("Mitra AI Chat Error:", err);
-    try {
-      const fallbackResponse = await ai.models.generateContent({
-        model: MODEL_LITE,
-        contents,
-        config: {
-          thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
-          systemInstruction
-        }
-      });
-      return fallbackResponse.text || "Support system busy.";
-    } catch (innerErr) {
-      return "Mitra AI abhi study breaks par hai (Network Error). Kripya thodi der baad try karein!";
-    }
+    return "Mitra AI abhi study breaks par hai (Network Error). Kripya thodi der baad try karein!";
   }
 }
 

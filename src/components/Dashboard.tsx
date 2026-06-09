@@ -8,7 +8,7 @@ import MarkdownRenderer from './MarkdownRenderer';
 interface DashboardProps {
   profile: UserProfile;
   onStartTest: () => void;
-  onStartTopicTest: (topic: Topic) => void;
+  onStartTopicTest: (topic: Topic | Topic[]) => void;
   onViewResult: (result: any) => void;
   onUpdateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   onStartCustomDrill: (prompt: string) => void;
@@ -264,6 +264,20 @@ export default function Dashboard({
               )}
             </div>
           </div>
+
+          {gaps.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-white/5 shrink-0">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartTopicTest(gaps.map(g => g.name));
+                }}
+                className="w-full py-3 bg-gradient-to-r from-warning/20 to-warning/5 hover:from-warning/30 hover:to-warning/15 border border-warning/30 text-warning hover:text-white transition-all text-[10px] font-black uppercase tracking-wider rounded-xl cursor-pointer flex items-center justify-center gap-2 shadow-lg hover:scale-[1.01] active:scale-[0.99] font-bold"
+              >
+                <Zap className="w-4 h-4 text-warning animate-pulse" strokeWidth={3} /> Test All Gap Topics ({gaps.length}) 🔥
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Section: Log History */}
