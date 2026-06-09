@@ -297,28 +297,44 @@ export default function AILearningDesk({
               </div>
 
               {/* Instant Custom Goal Drill Launcher */}
-              {profile.aiMentorPlan && (
-                <div className="mt-6 border-t border-white/5 pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <h5 className="text-[11px] sm:text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5 justify-center sm:justify-start">
-                      <Sparkles className="w-3.5 h-3.5 text-brand" /> Launch Personalised Practice Drill
-                    </h5>
-                    <p className="text-[9px] sm:text-[10px] text-slate-500 text-center sm:text-left mt-0.5 leading-normal">
-                      AI instant practice test generate karega jo directly aapke target weak topics ko focus karega.
-                    </p>
-                  </div>
+              {profile.aiMentorPlan && (() => {
+                const completedMilestones = profile.aiMentorPlan.milestones?.filter(m => m.completed) || [];
+                const hasCompletedMilestones = completedMilestones.length > 0;
+                return (
+                  <div className="mt-6 border-t border-white/5 pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <h5 className="text-[11px] sm:text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5 justify-center sm:justify-start">
+                        <Sparkles className={`w-3.5 h-3.5 ${hasCompletedMilestones ? 'text-emerald-400' : 'text-brand'}`} /> 
+                        {hasCompletedMilestones ? 'Practice Completed Milestones' : 'Launch Personalised Practice Drill'}
+                      </h5>
+                      <p className="text-[9px] sm:text-[10px] text-slate-500 text-center sm:text-left mt-0.5 leading-normal">
+                        {hasCompletedMilestones 
+                          ? `Aapke complete kiye gaye milestones ke topics: "${completedMilestones.map(m => m.title).join(', ')}" par bilkul dedicated practice test generate hoga.`
+                          : 'AI instant practice test generate karega jo directly aapke target weak topics ko focus karega.'}
+                      </p>
+                    </div>
 
-                  <button
-                    onClick={() => {
-                      const weakTopicsStr = profile.performance.weakTopics.join(', ') || 'core chapters';
-                      onStartCustomDrill(`Please generate a practice test focused on active recall of: ${weakTopicsStr}. Align difficulty with standard mock benchmarks for ${profile.exam}.`);
-                    }}
-                    className="w-full sm:w-auto px-5 py-2.5 bg-brand hover:bg-brand-light text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-brand/20 transition-all active:scale-95 cursor-pointer shrink-0 text-center font-bold"
-                  >
-                    Practice Weak areas ⚡
-                  </button>
-                </div>
-              )}
+                    <button
+                      onClick={() => {
+                        if (hasCompletedMilestones) {
+                          const milestoneTitles = completedMilestones.map(m => m.title).join(', ');
+                          onStartCustomDrill(`Please generate a practice/mock test of 10 questions focused SPECIFICALLY and EXCLUSIVELY on active recall of the completed study milestones: ${milestoneTitles}. Do not generate questions from other topics or fallback general syllabus templates. Align difficulty with standard mock benchmarks for ${profile.exam}.`);
+                        } else {
+                          const weakTopicsStr = profile.performance.weakTopics.join(', ') || 'core chapters';
+                          onStartCustomDrill(`Please generate a practice test focused on active recall of: ${weakTopicsStr}. Align difficulty with standard mock benchmarks for ${profile.exam}.`);
+                        }
+                      }}
+                      className={`w-full sm:w-auto px-5 py-2.5 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 cursor-pointer shrink-0 text-center font-bold shadow-lg ${
+                        hasCompletedMilestones 
+                          ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20' 
+                          : 'bg-brand hover:bg-brand-light shadow-brand/20'
+                      }`}
+                    >
+                      {hasCompletedMilestones ? 'Test Completed Milestones 🎯' : 'Practice Weak areas ⚡'}
+                    </button>
+                  </div>
+                );
+              })()}
             </motion.div>
           ) : (
             // INTERACTIVE MENTOR CHAT DESK (MITRA AI)
