@@ -285,13 +285,17 @@ export default function QuestionReview({ questions, userAnswers, onNextTest, pro
                           e.stopPropagation();
                           setActiveChatId(activeChatId === q.id ? null : q.id);
                         }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg border transition-all hover:scale-105 ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg border transition-all hover:scale-105 relative cursor-pointer ${
                           activeChatId === q.id
                             ? 'bg-slate-800 border-white/10 text-slate-300'
-                            : 'bg-brand/20 border-brand/30 hover:bg-brand/30 text-white shadow-md shadow-brand/10'
+                            : 'bg-gradient-to-r from-brand via-violet-600 to-brand-light border-brand/50 text-white shadow-lg shadow-brand/30 animate-pulse hover:animate-none'
                         }`}
                       >
-                        <Sparkles className="w-3 h-3" />
+                        <span className="relative flex h-2 w-2">
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75 ${activeChatId === q.id ? 'hidden' : ''}`}></span>
+                          <span className={`relative inline-flex rounded-full h-2 w-2 bg-sky-500 ${activeChatId === q.id ? 'bg-slate-400' : ''}`}></span>
+                        </span>
+                        <Sparkles className={`w-3 h-3 ${activeChatId === q.id ? '' : 'animate-bounce'}`} />
                         {activeChatId === q.id ? 'Close AI Help' : 'Ask with AI'}
                       </button>
                     </div>
