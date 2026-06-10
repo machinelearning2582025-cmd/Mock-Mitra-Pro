@@ -98,9 +98,6 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam, initia
             <div className="space-y-6 relative z-10 overflow-y-auto pr-2 custom-scrollbar flex-grow">
               {/* Specific Chapter / Topic Target Input */}
               <div className="space-y-2.5 p-4 bg-slate-950 border border-brand/30 hover:border-brand/50 rounded-2xl transition-all shadow-inner relative">
-                <div className="absolute top-3.5 right-4 pointer-events-none text-[8px] font-black uppercase tracking-wider text-brand bg-brand/10 border border-brand/20 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-brand rounded-full animate-ping"></span> Focus Target
-                </div>
                 <label className="text-[10px] font-black uppercase text-slate-300 tracking-widest pl-1 flex items-center gap-2">
                   <Target className="w-3.5 h-3.5 text-brand" strokeWidth={3} /> Topic / Chapter / Concept
                 </label>
