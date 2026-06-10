@@ -8,15 +8,22 @@ interface DrillSetupModalProps {
   onClose: () => void;
   onStart: (setup: DrillSetup) => void;
   exam: string;
+  initialTopic?: string;
 }
 
-export default function DrillSetupModal({ isOpen, onClose, onStart, exam }: DrillSetupModalProps) {
+export default function DrillSetupModal({ isOpen, onClose, onStart, exam, initialTopic = '' }: DrillSetupModalProps) {
   const [customTopic, setCustomTopic] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
   const [studyScheme, setStudyScheme] = useState<'PYQ & Important based' | 'Study based Imp' | 'Pure System'>('Pure System');
   const [files, setFiles] = useState<DrillFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setCustomTopic(initialTopic);
+    }
+  }, [isOpen, initialTopic]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;

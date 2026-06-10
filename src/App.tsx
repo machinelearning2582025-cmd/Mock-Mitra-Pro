@@ -103,6 +103,7 @@ export default function App() {
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDrillSetupOpen, setIsDrillSetupOpen] = useState(false);
+  const [drillInitialTopic, setDrillInitialTopic] = useState('');
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   // PWA Prompting States & Event Handlers
@@ -435,8 +436,15 @@ export default function App() {
         {appState === 'dashboard' && (
           <Dashboard 
             profile={profile} 
-            onStartTest={() => setIsDrillSetupOpen(true)} 
-            onStartTopicTest={(topic) => startNewTest(undefined, Array.isArray(topic) ? topic : [topic])}
+            onStartTest={() => {
+              setDrillInitialTopic('');
+              setIsDrillSetupOpen(true);
+            }} 
+            onStartTopicTest={(topic) => {
+              const topicName = Array.isArray(topic) ? topic.join(', ') : topic;
+              setDrillInitialTopic(topicName);
+              setIsDrillSetupOpen(true);
+            }}
             onViewResult={viewTestResult}
             onUpdateProfile={updateProfile}
             onStartCustomDrill={(prompt) => startNewTest({ customPrompt: prompt, difficulty: 'Medium' })}
@@ -452,6 +460,7 @@ export default function App() {
           onClose={() => setIsDrillSetupOpen(false)} 
           onStart={startNewTest} 
           exam={profile.exam}
+          initialTopic={drillInitialTopic}
         />
 
         <AccountModal 
