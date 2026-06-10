@@ -209,9 +209,11 @@ export default function AILearningDesk({
           </button>
           <button 
             onClick={() => setActiveTab('mentor')}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 text-[10px] sm:text-xs font-bold leading-none rounded-lg transition-all cursor-pointer ${activeTab === 'mentor' ? 'bg-brand/15 text-white border border-brand/20 shadow-md' : 'text-slate-400 hover:text-white border border-transparent'}`}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 text-[10px] sm:text-xs font-bold leading-none rounded-lg transition-all cursor-pointer relative overflow-hidden ${activeTab === 'mentor' ? 'bg-brand/20 text-white border border-brand/40 shadow-lg shadow-brand/10' : 'text-slate-400 hover:text-brand-light border border-transparent'}`}
           >
-            <MessageSquare className="w-3.5 h-3.5" /> Chat with Mitra AI
+            <MessageSquare className="w-3.5 h-3.5 text-brand" /> 
+            <span>Chat with Mitra AI</span>
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse inline-block ml-1"></span>
           </button>
         </div>
       </div>
@@ -343,8 +345,9 @@ export default function AILearningDesk({
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="flex flex-col h-full justify-between py-2"
+              className="flex flex-col h-full justify-between p-4 sm:p-5 bg-slate-950/40 border border-brand/25 rounded-2xl shadow-inner relative overflow-hidden"
             >
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-brand/40 to-transparent"></div>
               <div className="flex items-center justify-between border-b border-white/5 pb-2.5 mb-2.5 shrink-0">
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-sans">
                   Mitra AI Session Active ⚡
@@ -414,10 +417,10 @@ export default function AILearningDesk({
               )}
 
               {/* Chat input form panel */}
-              <div className="flex gap-2 border-t border-white/5 pt-3">
+              <div className="flex gap-2.5 border-t border-white/5 pt-3.5 items-center">
                 <input
                   type="text"
-                  className="flex-1 bg-slate-950/80 border border-slate-800 focus:border-brand/40 text-slate-200 px-3 sm:px-4 py-2.5 sm:py-3 text-[11px] sm:text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-brand/30 leading-none"
+                  className="flex-1 bg-slate-950/90 border border-brand/35 focus:border-brand-light text-slate-200 px-4 py-3 text-[11.5px] sm:text-xs rounded-xl focus:outline-none focus:ring-1 focus:ring-brand/40 leading-none shadow-inner"
                   placeholder="Ask study plan, Vedic math tricks, weak topics..."
                   value={chatIn}
                   onChange={(e) => setChatIn(e.target.value)}
@@ -431,7 +434,7 @@ export default function AILearningDesk({
                 <button
                   onClick={() => handleSendChat()}
                   disabled={isChatting}
-                  className="px-3 sm:px-4 py-2.5 sm:py-3 bg-brand hover:bg-brand-light text-white rounded-xl shadow-lg shadow-brand/10 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center shrink-0 cursor-pointer"
+                  className="px-4 py-3 bg-gradient-to-r from-brand to-brand-light hover:brightness-110 text-white rounded-xl shadow-lg shadow-brand/20 hover:shadow-brand/30 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center shrink-0 cursor-pointer border border-white/5 font-bold"
                   title="Send Message"
                 >
                   <Send className="w-3.5 h-3.5" />

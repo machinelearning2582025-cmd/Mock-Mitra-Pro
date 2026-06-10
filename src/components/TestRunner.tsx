@@ -135,36 +135,38 @@ export default function TestRunner({ questions, onComplete }: TestRunnerProps) {
                     </motion.button>
                   ))}
                 </div>
+
+                {/* Primary Action Button directly below Option D */}
+                <div className="mt-8">
+                  {currentIndex === questions.length - 1 ? (
+                    <button
+                      onClick={handleSubmit}
+                      className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 group cursor-pointer"
+                    >
+                      Final Submit <Zap className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
+                      className="w-full py-4 bg-brand hover:bg-brand-light text-white font-black rounded-2xl shadow-xl shadow-brand/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 group cursor-pointer"
+                    >
+                      Next Question <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  )}
+                </div>
               </motion.div>
             </AnimatePresence>
 
-            <footer className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Previous Question Action stacked underneath with quiet theme */}
+            <div className="mt-4 flex justify-center">
               <button
                 onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
                 disabled={currentIndex === 0}
-                className="w-full sm:w-auto px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all disabled:opacity-20 flex items-center justify-center sm:justify-start gap-2"
+                className="px-8 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all disabled:opacity-10 flex items-center gap-2 cursor-pointer"
               >
-                <ChevronLeft className="w-4 h-4" /> Previous
+                <ChevronLeft className="w-4 h-4" /> Previous Question
               </button>
-              
-              <div className="flex w-full sm:w-auto gap-3">
-                {currentIndex === questions.length - 1 ? (
-                  <button
-                    onClick={handleSubmit}
-                    className="w-full sm:w-auto px-10 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/30 hover:bg-emerald-500 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 group"
-                  >
-                    Final Submit <Zap className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
-                    className="w-full sm:w-auto px-10 py-4 bg-brand text-white font-black rounded-2xl shadow-xl shadow-brand/30 hover:bg-brand-light transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 group"
-                  >
-                    Next Question <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                )}
-              </div>
-            </footer>
+            </div>
           </div>
         </div>
 

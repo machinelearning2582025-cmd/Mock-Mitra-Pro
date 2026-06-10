@@ -202,7 +202,13 @@ export default function App() {
       const defaultTopics = examConfig?.defaultTopics || ['General Awareness', 'Quantitative Aptitude', 'English Language', 'Reasoning'];
       
       // If user provided custom setup (topic/prompt/files), focus strictly on those custom materials.
-      const isCustomDrill = !!(setup && (setup.customTopic || setup.customPrompt || (setup.files && setup.files.length > 0)));
+      const isCustomDrill = !!(
+        setup && (
+          (setup.customTopic && setup.customTopic.trim() !== '') || 
+          (setup.customPrompt && setup.customPrompt.trim() !== '') || 
+          (setup.files && setup.files.length > 0)
+        )
+      );
       
       // If specific topics passed, use them. If custom drill, use custom material placeholder. Otherwise, use weak/defaults.
       const topics: Topic[] = isCustomDrill
@@ -211,7 +217,7 @@ export default function App() {
           ? specificTopics 
           : (weak.length > 0 ? Array.from(new Set([...weak, ...defaultTopics])).slice(0, 5) : defaultTopics));
       
-      const isExplicitTopic = !!(specificTopics && specificTopics.length > 0) || !!(setup?.customTopic);
+      const isExplicitTopic = !!(specificTopics && specificTopics.length > 0) || !!(setup?.customTopic && setup.customTopic.trim() !== '');
       const generatedQuestions = await generateQuestionsAPI(
         topics, 
         setup?.difficulty || 'Medium', 

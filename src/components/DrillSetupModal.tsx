@@ -97,8 +97,11 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam, initia
 
             <div className="space-y-6 relative z-10 overflow-y-auto pr-2 custom-scrollbar flex-grow">
               {/* Specific Chapter / Topic Target Input */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1 flex items-center gap-2">
+              <div className="space-y-2.5 p-4 bg-slate-950 border border-brand/30 hover:border-brand/50 rounded-2xl transition-all shadow-inner relative">
+                <div className="absolute top-3.5 right-4 pointer-events-none text-[8px] font-black uppercase tracking-wider text-brand bg-brand/10 border border-brand/20 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-brand rounded-full animate-ping"></span> Focus Target
+                </div>
+                <label className="text-[10px] font-black uppercase text-slate-300 tracking-widest pl-1 flex items-center gap-2">
                   <Target className="w-3.5 h-3.5 text-brand" strokeWidth={3} /> Topic / Chapter / Concept
                 </label>
                 <input 
@@ -106,7 +109,7 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam, initia
                   value={customTopic}
                   onChange={(e) => setCustomTopic(e.target.value)}
                   placeholder="E.g., Trigonometry, Biology Plant Cell, ancient history, etc."
-                  className="w-full px-4 py-3 bg-slate-900/80 border-2 border-white/5 rounded-xl focus:border-brand/60 focus:ring-1 focus:ring-brand/30 outline-none transition-all text-xs font-bold text-white placeholder:text-slate-700"
+                  className="w-full px-4 py-3 bg-[#0a0d14] border border-white/10 rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none transition-all text-xs font-semibold text-white placeholder:text-slate-700"
                 />
               </div>
 
@@ -222,13 +225,13 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam, initia
             <footer className="mt-8 pt-4 border-t border-white/5 flex flex-col sm:flex-row gap-4 relative z-10 shrink-0">
               <button 
                 onClick={handleSubmit}
-                className="flex-grow py-4 bg-brand text-white font-black rounded-2xl shadow-xl shadow-brand/20 hover:bg-brand-light transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+                className="flex-grow py-4 bg-gradient-to-r from-brand to-brand-light hover:brightness-110 text-white font-black rounded-2xl shadow-xl shadow-brand/30 hover:shadow-brand/40 transition-all active:scale-[0.98] flex items-center justify-center gap-3 uppercase tracking-widest text-xs border border-white/5"
               >
-                Start Practice <Send className="w-4 h-4" />
+                Start Practice <Send className="w-4 h-4 animate-bounce" />
               </button>
               <button 
                 onClick={() => onStart({})}
-                className="py-4 px-8 bg-white/5 hover:bg-white/10 text-slate-400 font-black rounded-2xl transition-all uppercase tracking-widest text-[10px]"
+                className="py-4 px-8 bg-slate-900/80 hover:bg-slate-900 border border-white/5 text-slate-400 hover:text-white font-black rounded-2xl transition-all uppercase tracking-widest text-[10px]"
               >
                 Direct Start
               </button>
