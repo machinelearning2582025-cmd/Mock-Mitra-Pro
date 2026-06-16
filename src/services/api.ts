@@ -194,9 +194,6 @@ export async function generateQuestionsAPI(
        Please generate questions specifically based on the information provided in this video title and description.` 
     : "";
 
-  // Gemini 3.5 Flash is our default main question builder
-  const activeModel = MODEL_FLASH;
-
   let studySchemePrompt = "";
   if (customSetup?.studyScheme) {
     if (customSetup.studyScheme === 'PYQ & Important based') {
@@ -211,11 +208,11 @@ export async function generateQuestionsAPI(
     }
   }
 
-  const parts: any[] = [
-    {
-      text: `
+  // Create a helper function to compile parts with specific batch configurations to run in parallel
+  const getPartsForBatch = (batchCount: number, batchIndex: number, totalBatches: number) => {
+    const mainPromptText = `
         You are a highly skilled academic exam paper setter and senior subject specialist for ${examType}.
-        Your goal is to curate a set of ${count} high-quality, relevant, and accurate questions or problems.
+        Your goal is to curate a set of ${batchCount} high-quality, relevant, and accurate questions or problems.
 
         ========================================================================
         🚨 CRITICAL SUPREME DIRECTIVE: PRIORITIZE USER CUSTOM MATERIAL & CUSTOM INSTRUCTIONS/TOPICS ABOVE ALL ELSE 🚨
@@ -223,7 +220,7 @@ export async function generateQuestionsAPI(
         The user has custom-tailored this practice session. You MUST give the user's provided instructions, uploaded files/images, reference material, custom exam specifications, or custom topics absolute 100% supreme priority, overriding any standard, generic, or defaulted syllabus/structures.
         
         - IF the user has provided any custom topic/chapter (e.g., customTopic: "${customSetup?.customTopic || ""}"), custom specifications/AI Instructions (e.g., custom study details: "${effectiveCustomExamDetails || ""}"), custom prompt/topic (e.g., "${customSetup?.customPrompt || ""}"), or uploaded files/images:
-          1. Every single one of the generated ${count} questions MUST be crafted strictly and exclusively based on the custom topic/chapter specified ("${customSetup?.customTopic || ""}"), or the facts, concepts, text, rules, subjects, or equations specified in those custom specifications / user directives / custom prompts.
+          1. Every single one of the generated ${batchCount} questions MUST be crafted strictly and exclusively based on the custom topic/chapter specified ("${customSetup?.customTopic || ""}"), or the facts, concepts, text, rules, subjects, or equations specified in those custom specifications / user directives / custom prompts.
           2. E.g., if the user wrote "Biology", "Plant Cell", "Akbar", or a specific chapter, you are strictly forbidden from generating Chemistry, Math, History, or general aptitude questions unless it is the exact requested topic. You must generate 100% of the questions strictly on "${customSetup?.customTopic || ""}".
           3. You are STRICTLY FORBIDDEN from generating standard mock questions from the default general syllabus of ${examType} (such as general maths, quantitative aptitude, english, or reasoning, unless they are explicitly specified in the custom instructions, e.g. "Biology" should have 100% Biology questions, "Trigonometry" should have 100% Trigonometry questions, etc.).
           4. Do NOT look at or use the default backup topic list: [${topics.join(", ")}] if any custom topic ("${customSetup?.customTopic || ""}") or custom instructions (like "${effectiveCustomExamDetails || ""}" or "${customSetup?.customPrompt || ""}") are present. Fallback to standard syllabus subjects is illegal when a custom topic is requested.
@@ -272,6 +269,11 @@ export async function generateQuestionsAPI(
         - Operations/Symbols: Use clean mathematical unicode elements like ±, ÷, ×, =, ≠, ≤, ≥, ≈, °, π, θ, α, β, Δ.
         - This rule applies to both the generated 'question' stems, 'options', and 'explanation' fields!
 
+        --- PARALLEL GENERATION DIVERSITY DIRECTIVE ---
+        - This is parallel generation job ${batchIndex + 1} of ${totalBatches}.
+        - You MUST generate exactly ${batchCount} questions.
+        - Ensure these questions are fully unique and explore distinct concepts or sub-topics of the selected target. Avoid duplicating identical question types with other concurrent batches.
+
         --- EXQUISITE QUALITY & GENERATION DISCIPLINE (SPEED OPTIMIZED) ---
         - NO DUMMY PLACEHOLDERS: Generate fully formed, factually correct, logically sound questions.
         - GOOD DISTRACTORS: All alternative choices must be plausible, reflecting common misunderstandings or typical student errors.
@@ -280,81 +282,131 @@ export async function generateQuestionsAPI(
         - PREVENT REPETITION: Do not reuse or duplicate question concepts resembling the following IDs: ${avoidIds.slice(0, 20).join(", ")}.
 
         Return the response strictly as a JSON array matching the specified JSON schema.
-      `
-    }
-  ];
+    `;
 
-  // Add files to context if present
-  if (customSetup?.files && customSetup.files.length > 0) {
-    customSetup.files.forEach(file => {
-      parts.push({
-        inlineData: {
-          mimeType: file.type,
-          data: file.base64
-        }
+    const batchParts: any[] = [{ text: mainPromptText }];
+
+    // Add files to context if present
+    if (customSetup?.files && customSetup.files.length > 0) {
+      customSetup.files.forEach(file => {
+        batchParts.push({
+          inlineData: {
+            mimeType: file.type,
+            data: file.base64
+          }
+        });
       });
-    });
-    parts.push({
-      text: `
-        CRITICAL DIRECTIVE FOR THE ATTACHED STUDY MATERIAL FILES AND IMAGES:
-        The customer has uploaded the above images/documents to custom-tailor this mock exam.
-        You MUST analyze these provided files thoroughly.
-        The ${count} questions you generate MUST be highly accurate formulations DIRECTLY and strictly based on the content, tables, equations, paragraphs, or diagrams present in these documents/images.
-        In the 'explanation' field of each generated question, include a specific note explaining which part/fact of the uploaded files supports this answer, so the user knows exactly that it comes from their provided materials.
-      `
-    });
+      batchParts.push({
+        text: `
+          CRITICAL DIRECTIVE FOR THE ATTACHED STUDY MATERIAL FILES AND IMAGES:
+          The customer has uploaded the above images/documents to custom-tailor this mock exam.
+          You MUST analyze these provided files thoroughly.
+          The ${batchCount} questions you generate MUST be highly accurate formulations DIRECTLY and strictly based on the content, tables, equations, paragraphs, or diagrams present in these documents/images.
+          In the 'explanation' field of each generated question, include a specific note explaining which part/fact of the uploaded files supports this answer, so the user knows exactly that it comes from their provided materials.
+        `
+      });
+    }
+
+    return batchParts;
+  };
+
+  // Define parallel batched counts to keep generation extremely rapid (under 2 seconds)
+  const batchSize = 5;
+  const numBatches = Math.ceil(count / batchSize);
+  const batches: { count: number; index: number }[] = [];
+  let remainingCount = count;
+  for (let i = 0; i < numBatches; i++) {
+    const currentBatch = Math.min(batchSize, remainingCount);
+    if (currentBatch > 0) {
+      batches.push({ count: currentBatch, index: i });
+      remainingCount -= currentBatch;
+    }
   }
 
-  const generate = async (modelName: string) => {
-    return await ai.models.generateContent({
-      model: modelName,
-      contents: { parts },
-      config: {
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              subject: { type: Type.STRING },
-              topic: { type: Type.STRING },
-              question: { type: Type.STRING },
-              options: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING }
+  // Individual batch runner with direct error boundaries and model fallbacks
+  const generateBatch = async (bCount: number, bIndex: number) => {
+    const batchParts = getPartsForBatch(bCount, bIndex, numBatches);
+
+    const runCall = async (modelName: string) => {
+      return await ai.models.generateContent({
+        model: modelName,
+        contents: { parts: batchParts },
+        config: {
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                subject: { type: Type.STRING },
+                topic: { type: Type.STRING },
+                question: { type: Type.STRING },
+                options: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING }
+                },
+                correctAnswer: { type: Type.INTEGER },
+                explanation: { type: Type.STRING },
+                difficulty: { type: Type.STRING }
               },
-              correctAnswer: { type: Type.INTEGER },
-              explanation: { type: Type.STRING },
-              difficulty: { type: Type.STRING }
-            },
-            required: ["id", "subject", "topic", "question", "options", "correctAnswer", "explanation", "difficulty"]
+              required: ["id", "subject", "topic", "question", "options", "correctAnswer", "explanation", "difficulty"]
+            }
           }
         }
+      });
+    };
+
+    try {
+      try {
+        return await runCall(MODEL_FLASH);
+      } catch (e) {
+        console.warn(`Primary model ${MODEL_FLASH} failed for batch ${bIndex + 1}, fallback to ${MODEL_LITE}:`, e);
+        return await runCall(MODEL_LITE);
       }
-    });
+    } catch (error) {
+      console.error(`Batch ${bIndex + 1} fully failed generation, will use robust local cache fallback for this chunk:`, error);
+      return null;
+    }
   };
 
   try {
-    let response;
-    try {
-      response = await generate(MODEL_FLASH);
-    } catch (e) {
-      console.warn(`Primary model ${MODEL_FLASH} failed, using fallback ${MODEL_LITE}`);
-      response = await generate(MODEL_LITE);
-    }
-    
-    let text = response.text || "";
-    // Robust cleanup of markdown wrappers if any
-    if (text.includes("```")) {
-      text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    // Run all batches in parallel
+    const batchResponses = await Promise.all(
+      batches.map(b => generateBatch(b.count, b.index))
+    );
+
+    let allQuestionsCombined: any[] = [];
+
+    for (let i = 0; i < batchResponses.length; i++) {
+      const response = batchResponses[i];
+      const bInfo = batches[i];
+
+      if (response && response.text) {
+        try {
+          let text = response.text || "";
+          if (text.includes("```")) {
+            text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+          }
+          const parsed = JSON.parse(text || "[]");
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            allQuestionsCombined = allQuestionsCombined.concat(parsed);
+            continue;
+          }
+        } catch (parseError) {
+          console.warn(`JSON parser failed on batch ${i + 1}, using safe local fallback for it.`, parseError);
+        }
+      }
+
+      // Safe local fallback for this specific batch
+      const batchFallback = getLocalFallbackQuestions(bInfo.count, topics, avoidIds, difficulty, i);
+      allQuestionsCombined = allQuestionsCombined.concat(batchFallback);
     }
 
-    const parsed = JSON.parse(text || "[]");
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      // Clean, validate and fallback missing keys to prevent runtime UI crashes
-      const sanitized = parsed.map((item: any, idx: number) => {
+    if (allQuestionsCombined.length > 0) {
+      // Clean, validate and prevent runtime UI crashes
+      const sanitized = allQuestionsCombined.map((item: any, idx: number) => {
         const itemOptions = Array.isArray(item.options) && item.options.length >= 2 
           ? item.options 
           : ["A", "B", "C", "D"];
@@ -377,32 +429,41 @@ export async function generateQuestionsAPI(
             : (difficulty || 'Medium')
         };
       });
+
       return sanitized;
     }
-    throw new Error("No array format returned from Gemini API");
+    throw new Error("No questions retrieved from batched pipelines");
+
   } catch (error) {
-    console.warn("Gemini Generation Error, using static questions fallback:", error);
-    
-    // Filter local static questions by matching user topics
-    const matching = QUESTIONS.filter(q => 
-      topics.some(t => q.topic.toLowerCase().includes(t.toLowerCase()) || q.subject.toLowerCase().includes(t.toLowerCase()))
-    );
-    
-    let result = [...matching];
-    
-    // If not enough questions match, fill with other random questions from QUESTIONS list
-    if (result.length < count) {
-      const remaining = QUESTIONS.filter(q => !result.some(rq => rq.id === q.id));
-      const needed = count - result.length;
-      result = [...result, ...remaining.slice(0, needed)];
-    }
-    
-    // Ensure unique IDs to prevent duplicate key rendering issues
-    return result.slice(0, count).map((q, idx) => ({
-      ...q,
-      id: `${q.id}-fallback-${idx}-${Date.now()}`
-    }));
+    console.warn("Global Batched Generation Exception, using full local questions fallback:", error);
+    return getLocalFallbackQuestions(count, topics, avoidIds, difficulty, 999);
   }
+}
+
+function getLocalFallbackQuestions(
+  count: number,
+  topics: Topic[],
+  avoidIds: string[],
+  difficulty: 'Easy' | 'Medium' | 'Hard',
+  batchIdx: number
+): Question[] {
+  const matching = QUESTIONS.filter(q => 
+    topics.some(t => q.topic.toLowerCase().includes(t.toLowerCase()) || q.subject.toLowerCase().includes(t.toLowerCase())) &&
+    !avoidIds.includes(q.id)
+  );
+  
+  let result = [...matching];
+  
+  if (result.length < count) {
+    const remaining = QUESTIONS.filter(q => !result.some(rq => rq.id === q.id) && !avoidIds.includes(q.id));
+    const needed = count - result.length;
+    result = [...result, ...remaining.slice(0, needed)];
+  }
+  
+  return result.slice(0, count).map((q, idx) => ({
+    ...q,
+    id: `${q.id}-fallback-${batchIdx}-${idx}-${Date.now()}`
+  }));
 }
 
 export async function generateLearningStrategyAPI(
