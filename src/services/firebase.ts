@@ -31,11 +31,11 @@ export const auth = getAuth();
 // Test the connection as strictly requested by the Firebase Skill guidelines
 async function testConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
+    const connPromise = getDocFromServer(doc(db, 'test', 'connection'));
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000));
+    await Promise.race([connPromise, timeoutPromise]);
   } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
-    }
+    console.warn("Firebase test connection skipped or offline:", error);
   }
 }
 testConnection();

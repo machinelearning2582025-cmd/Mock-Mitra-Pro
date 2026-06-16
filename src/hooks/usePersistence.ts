@@ -31,6 +31,30 @@ const INITIAL_PROFILE: UserProfile = {
   }
 };
 
+function withTimeout<T>(promise: Promise<T>, ms: number, defaultValue: T): Promise<T> {
+  let timeoutId: any;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timeoutId = setTimeout(() => {
+      console.warn(`Firestore operation timed out after ${ms}ms. Returning fallback.`);
+      resolve(defaultValue);
+    }, ms);
+  });
+  
+  return Promise.race([
+    promise
+      .then((res) => {
+        clearTimeout(timeoutId);
+        return res;
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        console.error("Firestore operation rejected:", err);
+        return defaultValue;
+      }),
+    timeoutPromise
+  ]);
+}
+
 function getOrCreateGuestId(): string {
   const KEY = 'mockmitra_guest_uuid';
   let id = localStorage.getItem(KEY);
@@ -201,8 +225,8 @@ export function usePersistence() {
       setFirebaseUser(user);
       if (user) {
         try {
-          const fsProfile = await getUserProfileFromFirestore(user.uid);
-          const fsTests = await getTestResultsFromFirestore(user.uid);
+          const fsProfile = await withTimeout(getUserProfileFromFirestore(user.uid), 2500, null);
+          const fsTests = await withTimeout(getTestResultsFromFirestore(user.uid), 2500, []);
 
           // Get the current local guest data from local storage
           let currentGuest: UserProfile = INITIAL_PROFILE;
@@ -215,7 +239,18 @@ export function usePersistence() {
             console.error("Local storage lookup failed in sync handler", e);
           }
 
-          const mergedProfile = await mergeGuestWithCloudAndSave(user, fsProfile, fsTests || [], currentGuest);
+          let mergedProfile: UserProfile;
+          try {
+            mergedProfile = await withTimeout(
+              mergeGuestWithCloudAndSave(user, fsProfile, fsTests || [], currentGuest),
+              3000,
+              null
+            ) || fsProfile || currentGuest || INITIAL_PROFILE;
+          } catch (mergeErr) {
+            console.error("Merging failed, using fallback profile structures:", mergeErr);
+            mergedProfile = fsProfile || currentGuest || INITIAL_PROFILE;
+          }
+          
           setProfile(mergedProfile);
         } catch (error) {
           console.error("Error loading user profile from Firestore:", error);
@@ -384,8 +419,8 @@ export function usePersistence() {
       setFirebaseUser(userObj);
 
       // Explicitly fetch and merge cloud profile instantly to guarantee UI remains in secure loading state
-      const fsProfile = await getUserProfileFromFirestore(userObj.uid);
-      const fsTests = await getTestResultsFromFirestore(userObj.uid);
+      const fsProfile = await withTimeout(getUserProfileFromFirestore(userObj.uid), 2500, null);
+      const fsTests = await withTimeout(getTestResultsFromFirestore(userObj.uid), 2500, []);
 
       let currentGuest: UserProfile = INITIAL_PROFILE;
       try {
@@ -397,7 +432,18 @@ export function usePersistence() {
         console.error("Local storage lookup failed inside loginWithGoogle", e);
       }
 
-      const mergedProfile = await mergeGuestWithCloudAndSave(userObj, fsProfile, fsTests || [], currentGuest);
+      let mergedProfile: UserProfile;
+      try {
+        mergedProfile = await withTimeout(
+          mergeGuestWithCloudAndSave(userObj, fsProfile, fsTests || [], currentGuest),
+          3000,
+          null
+        ) || fsProfile || currentGuest || INITIAL_PROFILE;
+      } catch (mergeErr) {
+        console.error("Merge failed during login, falling back to local/cloud default:", mergeErr);
+        mergedProfile = fsProfile || currentGuest || INITIAL_PROFILE;
+      }
+      
       setProfile(mergedProfile);
 
       return userObj;
