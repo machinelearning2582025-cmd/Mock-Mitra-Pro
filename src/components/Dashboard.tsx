@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Target, TrendingUp, AlertTriangle, Calendar, ArrowRight, Zap, Sparkles, BookOpen, Smartphone } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, Calendar, ArrowRight, Zap, Sparkles, BookOpen, Smartphone, Menu } from 'lucide-react';
 import { UserProfile, Topic } from '../types';
 import { getExamConfig } from '../data/examsConfig';
 import AILearningDesk from './AILearningDesk';
@@ -16,6 +16,7 @@ interface DashboardProps {
   onClearChatHistory?: () => void;
   onInstallClick?: () => void;
   showInstallButton?: boolean;
+  onMenuClick: () => void;
 }
 
 export default function Dashboard({ 
@@ -28,7 +29,8 @@ export default function Dashboard({
   onClearTestHistory,
   onClearChatHistory,
   onInstallClick,
-  showInstallButton = true
+  showInstallButton = true,
+  onMenuClick
 }: DashboardProps) {
   const history = profile.performance.testHistory;
   const examConfig = getExamConfig(profile.exam);
@@ -65,43 +67,56 @@ export default function Dashboard({
 
   return (
     <div className="w-full px-4 sm:px-6 py-4 sm:py-12">
-      <header className="mb-6 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      {/* Header matching the video layout perfectly */}
+      <header className="mb-6 sm:mb-8 flex items-center justify-between gap-4">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
+          className="flex-1 min-w-0"
         >
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black mb-2 text-white leading-tight">Welcome, <span className="text-brand">{profile.name}</span></h1>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black mb-2 text-white leading-tight truncate">Welcome, <span className="text-brand">{profile.name}</span></h1>
           <p className="text-slate-400 text-[10px] sm:text-base font-medium flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-brand" /> 
             Focus: <span className="text-brand-light font-bold">{profile.exam}</span> 
             {profile.customExamDetails && <span className="text-[10px] opacity-60 ml-2 italic">({profile.customExamDetails})</span>}
           </p>
         </motion.div>
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex shrink-0 relative group"
+
+        {/* Round blue Hamburger menu button on the right */}
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={onMenuClick}
+          className="w-12 h-12 rounded-2xl bg-brand hover:bg-brand-light text-white flex items-center justify-center shadow-lg shadow-brand/20 hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0 border border-white/10"
         >
-          {/* Subtle glowing halo pulsing in the background */}
-          <span className="absolute -inset-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-brand via-purple-600 to-indigo-600 opacity-75 blur-md animate-pulse group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></span>
-          
-          <motion.button 
+          <Menu className="w-6 h-6 text-white" />
+        </motion.button>
+      </header>
+
+      {/* Main Action Buttons Section under Header - Mock Mitra Pro Button Removed as explicitly requested */}
+      <div className="mb-6 sm:mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative group w-full"
+        >
+          <span className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-brand via-purple-600 to-indigo-600 opacity-20 blur-md animate-pulse"></span>
+          <motion.button
             id="start-practice-btn"
             onClick={onStartTest}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative w-full sm:w-auto flex items-center justify-center gap-3 px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-[#2563EB] to-indigo-600 hover:from-brand-light hover:to-indigo-500 text-white font-black rounded-xl sm:rounded-2xl shadow-2xl shadow-brand/50 hover:shadow-brand/80 transition-all cursor-pointer uppercase tracking-widest text-xs sm:text-sm border border-white/20 hover:border-white/40 shrink-0"
+            whileHover={{ scale: 1.01, y: -1 }}
+            whileTap={{ scale: 0.99 }}
+            className="relative w-full flex items-center justify-center gap-3 py-4 sm:py-5 px-6 bg-gradient-to-r from-brand to-indigo-600 hover:from-brand-light hover:to-indigo-500 text-white font-black rounded-2xl shadow-xl shadow-brand/30 transition-all cursor-pointer uppercase tracking-widest text-xs sm:text-sm border border-white/10"
           >
-            {/* Active pulsing notification dot to draw focus */}
             <span className="flex h-2.5 w-2.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
             </span>
             <span>Start Practice Session</span>
-            <Zap className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 fill-current text-white animate-bounce" />
+            <Zap className="w-4.5 h-4.5 text-white animate-bounce" />
           </motion.button>
         </motion.div>
-      </header>
+      </div>
 
       {/* Main Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 auto-rows-min">

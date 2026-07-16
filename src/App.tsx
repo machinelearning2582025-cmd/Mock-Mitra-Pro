@@ -8,6 +8,7 @@ import ResultView from './components/ResultView';
 import DrillSetupModal from './components/DrillSetupModal';
 import AccountModal from './components/AccountModal';
 import PWAInstallModal from './components/PWAInstallModal';
+import SidebarDrawer from './components/SidebarDrawer';
 import { usePersistence } from './hooks/usePersistence';
 import { QUESTIONS } from './data/questions';
 import { generateQuestionsAPI, analyzePerformanceAPI, updatePersonalisedProfileBackgroundAPI } from './services/api';
@@ -105,6 +106,7 @@ export default function App() {
   const [isDrillSetupOpen, setIsDrillSetupOpen] = useState(false);
   const [drillInitialTopic, setDrillInitialTopic] = useState('');
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // PWA Prompting States & Event Handlers
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -392,7 +394,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0A0C10] text-slate-200">
-      {appState !== 'onboarding' && (
+      {appState !== 'onboarding' && appState !== 'dashboard' && (
         <Navbar 
           userName={profile.name} 
           onProfileClick={() => setAppState('dashboard')} 
@@ -458,6 +460,7 @@ export default function App() {
             onClearChatHistory={clearChatHistory}
             onInstallClick={() => setIsPWAInstallModalOpen(true)}
             showInstallButton={!isPWAInstalled}
+            onMenuClick={() => setIsSidebarOpen(true)}
           />
         )}
 
@@ -512,6 +515,22 @@ export default function App() {
                   setIsPWAInstallModalOpen(false);
                 }
               }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Custom Sidebar Drawer matching the video perfectly */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <SidebarDrawer
+              isOpen={isSidebarOpen}
+              onClose={() => setIsSidebarOpen(false)}
+              userName={profile.name}
+              onNavigate={(state) => setAppState(state)}
+              onOpenSettings={() => setIsAccountModalOpen(true)}
+              onInstallApp={() => setIsPWAInstallModalOpen(true)}
+              onLogout={handleLogout}
+              showInstallButton={!isPWAInstalled}
             />
           )}
         </AnimatePresence>
