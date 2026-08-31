@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -10,39 +10,60 @@
   --color-success: #10b981;
   --color-danger: #f43f5e;
   --color-warning: #f59e0b;
-  --color-bg-dark: #0A0C10;
-  --color-card-dark: #12151C;
+  --color-bg-dark: #080a10;
+  --color-card-dark: #0f131d;
   --color-border-dark: #1e293b;
 
-  --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
-  --shadow-brand: 0 20px 40px -15px rgba(37, 99, 235, 0.3);
+  --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  --shadow-brand: 0 20px 40px -15px rgba(37, 99, 235, 0.35);
 }
 
 @layer base {
-  body {
-    @apply text-slate-200 font-sans;
-    background-color: #0A0C10;
+  html {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overscroll-behavior-y: contain;
   }
+
+  body {
+    @apply text-slate-100 font-sans antialiased;
+    background-color: #080a10;
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   h1, h2, h3, h4 {
     @apply font-display tracking-tight text-white;
+  }
+
+  /* Improved button and clickable control interactions */
+  button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
 }
 
 .bento-card {
-  @apply border border-slate-800 rounded-3xl p-6 transition-all duration-300 shadow-premium;
-  background-color: #12151C;
+  @apply border border-slate-800/80 rounded-3xl p-6 transition-all duration-300 shadow-premium;
+  background-color: #0f131d;
 }
 
 .bento-card-hover {
-  @apply hover:border-brand/50 hover:shadow-brand hover:-translate-y-1;
+  @apply hover:border-brand/50 hover:shadow-brand hover:-translate-y-0.5 active:scale-[0.99];
 }
 
 .glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  @apply bg-[#0c101a]/90 backdrop-blur-xl border border-white/10;
 }
 
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.99];
+}
+
+/* Native App Bottom Dock & Safe Spacing */
+.safe-bottom-dock {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
 }
 
 /* Custom Hide Scrollbar */

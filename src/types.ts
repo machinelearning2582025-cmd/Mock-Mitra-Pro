@@ -43,6 +43,14 @@ export interface TestResult {
   };
 }
 
+export interface NotificationSettings {
+  enabled: boolean;
+  time: string; // e.g. "08:00", "20:00"
+  days?: string[]; // ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  sound?: boolean;
+  lastNotifiedDate?: string;
+}
+
 export interface UserProfile {
   name: string;
   exam: string;
@@ -52,6 +60,7 @@ export interface UserProfile {
   performance: UserPerformance;
   learningGoals?: string[];
   customStudyNotes?: string;
+  notificationSettings?: NotificationSettings;
   aiMentorPlan?: {
     summary: string;
     milestones: { title: string; completed: boolean }[];

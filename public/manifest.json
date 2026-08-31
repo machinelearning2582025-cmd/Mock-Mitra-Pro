@@ -1,16 +1,37 @@
 {
-  "name": "MockMitra",
+  "name": "MockMitra - Practice & Test Platform",
   "short_name": "MockMitra",
+  "description": "Universal Practice Platform with AI Mentorship, Daily Reminders, and Full Offline Mode",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay"],
   "orientation": "portrait",
-  "background_color": "#0F1117",
-  "theme_color": "#0F1117",
+  "background_color": "#080a10",
+  "theme_color": "#080a10",
+  "categories": ["education", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icon.svg",
       "sizes": "192x192 256x256 384x384 512x512",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Practice Test",
+      "short_name": "Practice",
+      "description": "Launch instant mock practice test",
+      "url": "/?action=practice",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI Study Mentor",
+      "short_name": "AI Mentor",
+      "description": "Open AI Learning & Strategy Desk",
+      "url": "/?action=aidesk",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
     }
   ]
 }

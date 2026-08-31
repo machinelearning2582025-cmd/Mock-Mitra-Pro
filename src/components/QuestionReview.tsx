@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle, Info, ChevronDown, ChevronUp, Zap, Sparkles, Sen
 import { Question, UserProfile } from '../types';
 import { chatWithMitraAPI } from '../services/api';
 import MarkdownRenderer from './MarkdownRenderer';
+import { triggerHaptic } from '../services/nativeService';
 
 interface QuestionReviewProps {
   questions: Question[];
@@ -58,6 +59,7 @@ Aap jo bhi puchna chahte hain, kripya direct type karein!`;
     const textToSend = (customText || inputText).trim();
     if (!textToSend || isTyping) return;
 
+    triggerHaptic('light');
     if (!customText) setInputText('');
 
     const newMsgs = [
@@ -68,7 +70,6 @@ Aap jo bhi puchna chahte hain, kripya direct type karein!`;
     setIsTyping(true);
 
     try {
-      // Build a specific context for the LLM review
       const contextPrompt = `
 Context parameters for specified review:
 - Question Text: "${question.question}"
@@ -94,11 +95,12 @@ Provide a very short, crisp, precise, and direct clarification. STRICTLY keep th
         ...prev,
         { role: 'model' as const, text: reply, date: new Date().toISOString() }
       ]);
+      triggerHaptic('light');
     } catch (err) {
       console.error(err);
       setMessages(prev => [
         ...prev,
-        { role: 'model' as const, text: "Koshish badiya thi par reply fetch karne me error aya. Dobara click karein ya type kijiye!", date: new Date().toISOString() }
+        { role: 'model' as const, text: "Koshish badiya thi par reply fetch karne me error aya. Dobara try karein ya internet check karein!", date: new Date().toISOString() }
       ]);
     } finally {
       setIsTyping(false);
@@ -106,6 +108,7 @@ Provide a very short, crisp, precise, and direct clarification. STRICTLY keep th
   };
 
   const cleanHistory = () => {
+    triggerHaptic('light');
     setMessages([
       {
         role: 'model',
@@ -116,38 +119,38 @@ Provide a very short, crisp, precise, and direct clarification. STRICTLY keep th
   };
 
   return (
-    <div className="bg-slate-950/40 border border-brand/20 p-4 rounded-xl mt-4 relative" onClick={(e) => e.stopPropagation()}>
-      <div className="flex items-center justify-between border-b border-white/5 pb-2.5 mb-3">
+    <div className="bg-slate-950/70 border border-brand/25 p-4 sm:p-5 rounded-2xl mt-4 relative" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-3">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-brand animate-pulse" />
           <div>
-            <span className="text-[10px] font-black uppercase text-brand tracking-widest block">Mitra AI Instant Review</span>
-            <span className="text-[8px] text-slate-500 font-bold">Concept clarity with your AI Coach</span>
+            <span className="text-xs font-black uppercase text-brand tracking-widest block">Mitra AI Instant Review</span>
+            <span className="text-[10px] text-slate-400 font-bold">Concept clarity with your AI Coach</span>
           </div>
         </div>
         <button 
           type="button"
           onClick={cleanHistory}
-          className="text-slate-500 hover:text-slate-300 transition-colors p-1.5 rounded hover:bg-white/5"
+          className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5 cursor-pointer"
           title="Clear Chat Room"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
+          <RotateCcw className="w-4 h-4" />
         </button>
       </div>
 
       <div 
         ref={scrollRef}
-        className="space-y-3 max-h-[240px] overflow-y-auto pr-1 mb-3 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent custom-scrollbar"
+        className="space-y-3 max-h-[260px] overflow-y-auto pr-1 mb-3 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent custom-scrollbar"
       >
         {messages.map((m, idx) => (
           <div 
             key={idx} 
-            className={`flex gap-2 max-w-[95%] text-[11px] ${m.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+            className={`flex gap-2 max-w-[95%] text-xs sm:text-sm ${m.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
           >
-            <div className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center border ${m.role === 'user' ? 'bg-indigo-600/15 border-indigo-500/25 text-indigo-400' : 'bg-brand/10 border-brand/25 text-brand'}`}>
-              {m.role === 'user' ? <User className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
+            <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center border ${m.role === 'user' ? 'bg-indigo-600/20 border-indigo-500/30 text-indigo-400' : 'bg-brand/15 border-brand/30 text-brand'}`}>
+              {m.role === 'user' ? <User className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
             </div>
-            <div className={`p-2.5 rounded-xl leading-relaxed ${m.role === 'user' ? 'bg-indigo-600/10 text-slate-200 border border-indigo-500/10 rounded-tr-none' : 'bg-[#161a24] text-slate-300 border border-white/5 rounded-tl-none font-sans'}`}>
+            <div className={`p-3 rounded-2xl leading-relaxed ${m.role === 'user' ? 'bg-indigo-600/20 text-white border border-indigo-500/20 rounded-tr-none' : 'bg-[#151926] text-slate-200 border border-white/10 rounded-tl-none'}`}>
               <div className="markdown-body select-text">
                 <MarkdownRenderer text={m.text} />
               </div>
@@ -156,18 +159,18 @@ Provide a very short, crisp, precise, and direct clarification. STRICTLY keep th
         ))}
 
         {isTyping && (
-          <div className="flex gap-2 max-w-[95%] text-[11px]">
-            <div className="w-6 h-6 rounded-full shrink-0 bg-brand/10 border border-brand/25 text-brand flex items-center justify-center animate-pulse">
-              <Sparkles className="w-3 h-3 animate-spin" />
+          <div className="flex gap-2 max-w-[95%] text-xs">
+            <div className="w-7 h-7 rounded-full shrink-0 bg-brand/15 border border-brand/30 text-brand flex items-center justify-center animate-pulse">
+              <Sparkles className="w-3.5 h-3.5 animate-spin" />
             </div>
-            <div className="p-2.5 bg-white/5 border border-white/5 text-slate-500 rounded-xl rounded-tl-none italic font-medium animate-pulse">
-              Analyzing subject, crafting response...
+            <div className="p-3 bg-white/5 border border-white/5 text-slate-400 rounded-2xl rounded-tl-none italic font-medium animate-pulse">
+              Analyzing topic concept, preparing quick explanation...
             </div>
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 border-t border-white/5 pt-2.5">
+      <div className="flex items-center gap-2 border-t border-white/5 pt-3">
         <input 
           type="text"
           value={inputText}
@@ -178,16 +181,16 @@ Provide a very short, crisp, precise, and direct clarification. STRICTLY keep th
             }
           }}
           disabled={isTyping}
-          placeholder="Ask why user option was wrong, formula derivation..."
-          className="flex-1 bg-slate-950 border border-slate-800 focus:border-brand/30 text-white placeholder-slate-500 text-[11px] px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand/20 disabled:opacity-50 font-medium"
+          placeholder="Doubt puchiye (e.g. why is this formula used?)..."
+          className="flex-1 bg-slate-900 border border-white/10 focus:border-brand text-white placeholder-slate-500 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand/30 disabled:opacity-50 font-medium"
         />
         <button
           type="button"
           onClick={() => handleSend()}
           disabled={isTyping || !inputText.trim()}
-          className="bg-brand text-white hover:bg-brand-light p-2 rounded-lg text-xs font-bold transition-all disabled:opacity-50 hover:shadow-lg hover:shadow-brand/20 cursor-pointer"
+          className="bg-brand text-white hover:bg-brand-light p-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 hover:shadow-lg hover:shadow-brand/25 cursor-pointer shrink-0"
         >
-          <Send className="w-3 h-3" />
+          <Send className="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -199,20 +202,20 @@ export default function QuestionReview({ questions, userAnswers, onNextTest, pro
   const [activeChatId, setActiveChatId] = React.useState<string | null>(null);
 
   return (
-    <div className="mt-12 space-y-4">
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
-        <h3 className="text-xl font-bold flex items-center gap-2">
-          <span className="flex items-center gap-2"><Info className="w-5 h-5 text-brand" /> Check Correct Answers</span>
+    <div className="mt-10 space-y-4 max-w-5xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4 border-b border-white/5 pb-4">
+        <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
+          <Info className="w-6 h-6 text-brand" /> Detailed Question Analysis
         </h3>
-        <div className="flex items-center gap-4">
-           <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest hidden sm:block">Review Your Answers</span>
-           <button 
-            onClick={onNextTest}
-            className="flex items-center gap-2 px-6 py-2.5 bg-brand text-white font-black rounded-xl shadow-lg shadow-brand/20 hover:bg-brand-light transition-all active:scale-95 uppercase tracking-widest text-[10px]"
-          >
-            Start Next Test <Zap className="w-4 h-4 fill-current" />
-          </button>
-        </div>
+        <button 
+          onClick={() => {
+            triggerHaptic('success');
+            onNextTest();
+          }}
+          className="flex items-center gap-2 px-6 py-3 bg-brand text-white font-black rounded-xl shadow-lg shadow-brand/25 hover:bg-brand-light transition-all active:scale-95 uppercase tracking-widest text-xs cursor-pointer"
+        >
+          Start Next Test <Zap className="w-4 h-4 fill-current" />
+        </button>
       </div>
 
       <div className="space-y-4">
@@ -223,30 +226,39 @@ export default function QuestionReview({ questions, userAnswers, onNextTest, pro
           return (
             <motion.div 
               key={q.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className={`bento-card border-none ${isCorrect ? 'bg-emerald-500/5' : 'bg-red-500/5'} cursor-pointer transition-colors hover:bg-white/[0.03]`}
+              transition={{ delay: idx * 0.03 }}
+              className={`bento-card border transition-all cursor-pointer ${
+                isCorrect 
+                  ? 'bg-emerald-950/15 border-emerald-500/20 hover:border-emerald-500/40' 
+                  : 'bg-rose-950/15 border-rose-500/20 hover:border-rose-500/40'
+              }`}
               onClick={() => {
+                triggerHaptic('light');
                 setExpandedId(isExpanded ? null : q.id);
-                // Reset active chat when collapsing
                 if (isExpanded) {
                   setActiveChatId(null);
                 }
               }}
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className={`mt-1 shrink-0 ${isCorrect ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {isCorrect ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                <div className="flex items-start gap-3.5">
+                  <div className={`mt-1 shrink-0 ${isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {isCorrect ? <CheckCircle2 className="w-6 h-6" /> : <XCircle className="w-6 h-6" />}
                   </div>
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 block">Question {idx + 1} • {q.topic}</span>
-                    <p className="text-sm font-bold text-white leading-relaxed">{q.question}</p>
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-400 mb-1.5 block">
+                      Question {idx + 1} • <span className="text-brand-light">{q.topic}</span>
+                    </span>
+                    {/* Scaled-up Question statement font */}
+                    <p className="text-base sm:text-xl font-black text-white leading-snug sm:leading-relaxed">
+                      {q.question}
+                    </p>
                   </div>
                 </div>
-                <div className="text-slate-500 mt-1">
-                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                <div className="text-slate-400 mt-1 shrink-0">
+                  {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 </div>
               </div>
 
@@ -256,51 +268,55 @@ export default function QuestionReview({ questions, userAnswers, onNextTest, pro
                   animate={{ height: 'auto', opacity: 1 }}
                   className="mt-6 pt-6 border-t border-white/5 space-y-4"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4" onClick={(e) => e.stopPropagation()}>
+                  {/* Options List with Scaled font and distinct colors */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" onClick={(e) => e.stopPropagation()}>
                     {q.options.map((opt, optIdx) => {
                       const isUserSelected = userAnswers[q.id] === optIdx;
                       const isRight = q.correctAnswer === optIdx;
                       
-                      let appearance = 'bg-white/5 border-transparent text-slate-400';
-                      if (isRight) appearance = 'bg-emerald-500/20 border-emerald-500/50 text-white';
-                      if (isUserSelected && !isRight) appearance = 'bg-red-500/20 border-red-500/50 text-white';
+                      let appearance = 'bg-slate-900 border-white/5 text-slate-300';
+                      if (isRight) appearance = 'bg-emerald-500/20 border-emerald-500/60 text-white font-bold shadow-sm';
+                      if (isUserSelected && !isRight) appearance = 'bg-rose-500/20 border-rose-500/60 text-white font-bold shadow-sm';
 
                       return (
-                        <div key={optIdx} className={`p-3 rounded-xl border text-xs font-semibold ${appearance}`}>
-                          {opt}
+                        <div key={optIdx} className={`p-4 rounded-xl border text-sm sm:text-base leading-relaxed flex items-center gap-3 ${appearance}`}>
+                          <span className="w-7 h-7 rounded-lg bg-black/40 flex items-center justify-center text-xs font-black shrink-0">
+                            {String.fromCharCode(65 + optIdx)}
+                          </span>
+                          <span className="flex-1">{opt}</span>
+                          {isRight && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+                          {isUserSelected && !isRight && <XCircle className="w-4 h-4 text-rose-400 shrink-0" />}
                         </div>
                       );
                     })}
                   </div>
                   
-                  <div className="bg-brand/10 border border-brand/20 p-4 rounded-xl relative" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-between gap-4 mb-2">
-                      <div className="flex items-center gap-2 text-brand text-[10px] font-black uppercase tracking-widest">
-                         <Zap className="w-3 h-3" /> Explanation
+                  {/* Explanation Block with Scaled font */}
+                  <div className="bg-brand/10 border border-brand/25 p-4 sm:p-5 rounded-2xl relative" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-between gap-4 mb-2.5">
+                      <div className="flex items-center gap-2 text-brand text-xs font-black uppercase tracking-wider">
+                         <Zap className="w-4 h-4" /> Solution & Explanation
                       </div>
                       
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
+                          triggerHaptic('light');
                           setActiveChatId(activeChatId === q.id ? null : q.id);
                         }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg border transition-all hover:scale-105 relative cursor-pointer ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all cursor-pointer ${
                           activeChatId === q.id
                             ? 'bg-slate-800 border-white/10 text-slate-300'
-                            : 'bg-gradient-to-r from-brand via-violet-600 to-brand-light border-brand/50 text-white shadow-lg shadow-brand/30 animate-pulse hover:animate-none'
+                            : 'bg-gradient-to-r from-brand to-indigo-600 border-brand/40 text-white shadow-md'
                         }`}
                       >
-                        <span className="relative flex h-2 w-2">
-                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75 ${activeChatId === q.id ? 'hidden' : ''}`}></span>
-                          <span className={`relative inline-flex rounded-full h-2 w-2 bg-sky-500 ${activeChatId === q.id ? 'bg-slate-400' : ''}`}></span>
-                        </span>
-                        <Sparkles className={`w-3 h-3 ${activeChatId === q.id ? '' : 'animate-bounce'}`} />
-                        {activeChatId === q.id ? 'Close AI Help' : 'Ask with AI'}
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {activeChatId === q.id ? 'Close AI Doubt' : 'Ask AI Doubt'}
                       </button>
                     </div>
                     
-                    <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                    <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-medium">
                       {q.explanation}
                     </p>
                   </div>

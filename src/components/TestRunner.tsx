@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Clock, ChevronRight, ChevronLeft, Zap } from 'lucide-react';
+import { Clock, ChevronRight, ChevronLeft, Zap, CheckCircle2 } from 'lucide-react';
 import { Question, Topic } from '../types';
+import { triggerHaptic } from '../services/nativeService';
 
 interface TestRunnerProps {
   questions: Question[];
@@ -29,6 +30,9 @@ export default function TestRunner({ questions, onComplete }: TestRunnerProps) {
           if (!isSubmitted) handleSubmit();
           return 0;
         }
+        if (prev === 30) {
+          triggerHaptic('warning');
+        }
         return prev - 1;
       });
     }, 1000);
@@ -38,11 +42,13 @@ export default function TestRunner({ questions, onComplete }: TestRunnerProps) {
   const currentQuestion = questions[currentIndex];
 
   const handleAnswer = (optionIndex: number) => {
+    triggerHaptic('light');
     setAnswers(prev => ({ ...prev, [currentQuestion.id]: optionIndex }));
   };
 
   const handleSubmit = () => {
     if (isSubmitted) return;
+    triggerHaptic('success');
     setIsSubmitted(true);
     
     let score = 0;
@@ -71,142 +77,180 @@ export default function TestRunner({ questions, onComplete }: TestRunnerProps) {
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="w-full px-4 sm:px-6 py-6 sm:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 min-h-[600px]">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 min-h-[580px]">
         
-        {/* Main Content Area */}
-        <div className="lg:col-span-8 flex flex-col gap-4 sm:gap-6 order-2 lg:order-1">
-          <div className="bento-card border-brand/20 p-6 sm:p-10 bg-[#0c0f17] relative overflow-hidden h-full flex flex-col">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 blur-3xl rounded-full"></div>
+        {/* Main Question & Option Area */}
+        <div className="lg:col-span-8 flex flex-col gap-4 order-2 lg:order-1">
+          <div className="bento-card border-brand/25 p-5 sm:p-8 bg-[#0b0e17] relative overflow-hidden flex flex-col justify-between shadow-2xl">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-brand/10 blur-3xl rounded-full pointer-events-none"></div>
             
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 sm:mb-12 relative z-10">
-              <div className="order-2 sm:order-1">
-                <span className="text-[10px] font-black uppercase text-brand tracking-[0.2em] mb-1 block">Question {currentIndex + 1} / {questions.length}</span>
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest leading-none flex items-center gap-2">
-                  {currentQuestion.subject} <span className="w-1 h-1 bg-slate-700 rounded-full"></span> {currentQuestion.topic}
+            {/* Question Header & Live Timer */}
+            <header className="flex items-center justify-between gap-4 mb-6 sm:mb-8 relative z-10 border-b border-white/5 pb-4">
+              <div>
+                <span className="text-xs font-black uppercase text-brand tracking-[0.2em] mb-1 block">
+                  Question {currentIndex + 1} of {questions.length}
+                </span>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <span className="text-white font-black">{currentQuestion.subject}</span>
+                  <span className="w-1 h-1 bg-slate-600 rounded-full"></span> 
+                  <span>{currentQuestion.topic}</span>
                 </p>
               </div>
-              <div className={`order-1 sm:order-2 self-end sm:self-auto p-4 rounded-2xl border ${timeLeft < 60 ? 'bg-danger/10 border-danger text-danger animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.2)]' : 'bg-slate-800/50 border-white/5 text-white shadow-premium'} flex items-center gap-3 font-mono text-2xl sm:text-3xl font-black`}>
-                <Clock className="w-6 h-6 sm:w-7 sm:h-7" />
-                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+
+              {/* High Contrast Live Countdown */}
+              <div className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-2.5 font-mono text-xl sm:text-2xl font-black ${
+                timeLeft < 60 
+                  ? 'bg-rose-500/15 border-rose-500 text-rose-400 animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.25)]' 
+                  : 'bg-slate-900 border-white/10 text-white shadow-lg'
+              }`}>
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-brand" />
+                <span>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
               </div>
             </header>
 
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
-                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                initial={{ opacity: 0, scale: 0.98, y: 8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98, y: -10 }}
-                className="flex-grow flex flex-col justify-center max-w-3xl mx-auto w-full"
+                exit={{ opacity: 0, scale: 0.98, y: -8 }}
+                transition={{ duration: 0.2 }}
+                className="flex-grow flex flex-col justify-center w-full"
               >
-                <p className="text-xl sm:text-2xl lg:text-3xl font-black text-white leading-[1.3] sm:leading-relaxed mb-10 text-pretty">
+                {/* Scaled-Up Question Title */}
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white leading-snug sm:leading-relaxed mb-6 sm:mb-8 text-pretty">
                   {currentQuestion.question}
-                </p>
+                </h2>
 
+                {/* Options List with Scaled-Up Typography & Haptics */}
                 <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                  {currentQuestion.options.map((option, idx) => (
-                    <motion.button
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      key={idx}
-                      onClick={() => handleAnswer(idx)}
-                      className={`w-full text-left p-4 sm:p-6 rounded-2xl border-2 transition-all flex items-center gap-4 sm:gap-6 group relative overflow-hidden ${
-                        answers[currentQuestion.id] === idx
-                          ? 'border-brand bg-brand/10 shadow-[0_0_30px_rgba(37,99,235,0.1)]'
-                          : 'border-white/[0.03] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      {answers[currentQuestion.id] === idx && (
-                        <motion.div layoutId="active-indicator" className="absolute left-0 w-1 h-1/2 bg-brand rounded-r-full" />
-                      )}
-                      <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-xs sm:text-sm font-black border-2 transition-all shrink-0 ${
-                        answers[currentQuestion.id] === idx
-                          ? 'bg-brand border-brand text-white'
-                          : 'border-slate-800 text-slate-600 group-hover:text-white group-hover:border-slate-600'
-                      }`}>
-                        {String.fromCharCode(65 + idx)}
-                      </div>
-                      <span className={`text-sm sm:text-lg font-bold transition-colors leading-snug sm:leading-normal ${
-                        answers[currentQuestion.id] === idx ? 'text-white' : 'text-slate-400 group-hover:text-slate-300'
-                      }`}>
-                        {option}
-                      </span>
-                    </motion.button>
-                  ))}
+                  {currentQuestion.options.map((option, idx) => {
+                    const isSelected = answers[currentQuestion.id] === idx;
+                    return (
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
+                        key={idx}
+                        onClick={() => handleAnswer(idx)}
+                        className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all flex items-center gap-4 sm:gap-5 group relative overflow-hidden cursor-pointer ${
+                          isSelected
+                            ? 'border-brand bg-brand/15 shadow-[0_0_25px_rgba(37,99,235,0.2)]'
+                            : 'border-white/5 bg-slate-900/80 hover:border-brand/40 hover:bg-slate-900'
+                        }`}
+                      >
+                        {isSelected && (
+                          <motion.div layoutId="active-pill" className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />
+                        )}
+                        
+                        {/* Option Letter Badge */}
+                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-sm sm:text-base font-black border-2 transition-all shrink-0 ${
+                          isSelected
+                            ? 'bg-brand border-brand text-white shadow-md'
+                            : 'border-slate-700 bg-slate-950 text-slate-400 group-hover:text-white group-hover:border-slate-500'
+                        }`}>
+                          {String.fromCharCode(65 + idx)}
+                        </div>
+
+                        {/* Option Text */}
+                        <span className={`text-base sm:text-lg lg:text-xl font-bold transition-colors leading-normal flex-1 ${
+                          isSelected ? 'text-white' : 'text-slate-300 group-hover:text-white'
+                        }`}>
+                          {option}
+                        </span>
+
+                        {isSelected && (
+                          <CheckCircle2 className="w-5 h-5 text-brand shrink-0 animate-in fade-in" />
+                        )}
+                      </motion.button>
+                    );
+                  })}
                 </div>
 
-                {/* Primary Action Button directly below Option D */}
-                <div className="mt-8">
+                {/* Action Buttons */}
+                <div className="mt-8 pt-4 border-t border-white/5 flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      triggerHaptic('light');
+                      setCurrentIndex(prev => Math.max(0, prev - 1));
+                    }}
+                    disabled={currentIndex === 0}
+                    className="py-4 px-5 bg-white/5 hover:bg-white/10 text-slate-300 font-bold rounded-2xl transition-all uppercase tracking-wider text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Prev
+                  </button>
+
                   {currentIndex === questions.length - 1 ? (
                     <button
                       onClick={handleSubmit}
-                      className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 group cursor-pointer"
+                      className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/30 transition-all uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                     >
-                      Final Submit <Zap className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" />
+                      <span>Final Submit</span>
+                      <Zap className="w-4 h-4 fill-current" />
                     </button>
                   ) : (
                     <button
-                      onClick={() => setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1))}
-                      className="w-full py-4 bg-brand hover:bg-brand-light text-white font-black rounded-2xl shadow-xl shadow-brand/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 group cursor-pointer"
+                      onClick={() => {
+                        triggerHaptic('light');
+                        setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1));
+                      }}
+                      className="flex-1 py-4 bg-brand hover:bg-brand-light text-white font-black rounded-2xl shadow-xl shadow-brand/25 transition-all uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                     >
-                      Next Question <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <span>Next Question</span>
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   )}
                 </div>
               </motion.div>
             </AnimatePresence>
-
-            {/* Previous Question Action stacked underneath with quiet theme */}
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-                disabled={currentIndex === 0}
-                className="px-8 py-2.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all disabled:opacity-10 flex items-center gap-2 cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" /> Previous Question
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Sidebar Monitor */}
+        {/* Sidebar Question Palette & Progress */}
         <div className="lg:col-span-4 flex flex-col gap-4 order-1 lg:order-2">
-          <div className="bento-card bg-[#12151C] border-brand/10 p-5">
-            <h4 className="text-[10px] font-black uppercase text-slate-600 tracking-[0.3em] mb-8">My Progress</h4>
-            <div className="space-y-5">
+          <div className="bento-card bg-[#0e121d] border-brand/15 p-5">
+            <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider mb-4">Progress Monitor</h4>
+            <div className="space-y-3">
               <div className="flex justify-between items-end">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Test Completion</span>
-                <span className="text-3xl font-black text-white leading-none tracking-tighter">{Math.round(progress)}%</span>
+                <span className="text-xs font-bold text-slate-400">Answered:</span>
+                <span className="text-2xl font-black text-white tracking-tight">
+                  {Object.keys(answers).length} / {questions.length}
+                </span>
               </div>
-              <div className="h-2.5 bg-slate-900 rounded-full overflow-hidden p-[2px] border border-white/5">
+              <div className="h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-white/10">
                 <motion.div 
                   initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }} 
-                  className="h-full bg-gradient-to-r from-brand/50 to-brand rounded-full shadow-[0_0_10px_rgba(37,99,235,0.5)]" 
+                  animate={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }} 
+                  className="h-full bg-gradient-to-r from-brand to-emerald-500 rounded-full" 
                 />
               </div>
             </div>
           </div>
           
-          <div className="bento-card border-white/5 p-5 flex-grow">
-            <h4 className="text-[10px] font-black uppercase text-slate-600 tracking-[0.3em] mb-8">Question List</h4>
+          <div className="bento-card border-white/5 p-5 flex-grow bg-[#0e121d]">
+            <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider mb-4">Question Matrix</h4>
             <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
-              {questions.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentIndex(idx)}
-                  className={`w-full aspect-square rounded-xl flex items-center justify-center text-[11px] font-black border-2 transition-all group ${
-                    currentIndex === idx 
-                      ? 'bg-brand border-brand text-white shadow-brand scale-110 z-10' 
-                      : answers[questions[idx].id] !== undefined
-                        ? 'bg-emerald-600/10 border-emerald-600/30 text-emerald-500'
-                        : 'bg-slate-900/50 border-white/5 text-slate-700 hover:text-slate-400 hover:border-white/10'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
+              {questions.map((_, idx) => {
+                const isCurrent = currentIndex === idx;
+                const isAnswered = answers[questions[idx].id] !== undefined;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      triggerHaptic('light');
+                      setCurrentIndex(idx);
+                    }}
+                    className={`w-full aspect-square rounded-xl flex items-center justify-center text-xs font-black border-2 transition-all cursor-pointer ${
+                      isCurrent 
+                        ? 'bg-brand border-brand text-white shadow-lg shadow-brand/40 scale-105 z-10' 
+                        : isAnswered
+                          ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                          : 'bg-slate-900 border-white/5 text-slate-400 hover:text-white hover:border-white/20'
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
