@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, RefreshCw, CheckCircle2, Circle, Loader2, MessageSquare, Target, User, WifiOff } from 'lucide-react';
+import { Sparkles, Send, RefreshCw, CheckCircle2, Circle, Loader2, MessageSquare, Target, User, WifiOff, Trash2 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { generateLearningStrategyAPI, chatWithMitraAPI } from '../services/api';
 import { motion, AnimatePresence } from 'motion/react';
@@ -25,30 +25,23 @@ export default function AILearningDesk({
   const [chatIn, setChatIn] = useState('');
   const [isChatting, setIsChatting] = useState(false);
   
-  // Local chat display list
+  const defaultInitialMessage = {
+    role: 'model' as const,
+    text: `Namaste **${profile.name}**! Koi bhi topic ya concept puchiye, main tailored explanation aur practice guidance dunga.`,
+    date: new Date().toISOString()
+  };
+
   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'model'; text: string; date: string }[]>(
-    profile.chatHistory || [
-      {
-        role: 'model',
-        text: `Namaste **${profile.name}**! Main aapka AI Mentor Mitra hoon. \n\nAap jis bhi topic ya concept me comfortable feel nahi kar rahe hain, mujhe batayein. Main aapki target performance aur dynamic weak areas ko focus karke revision tips, active recall strategies aur guidance provide karunga.`,
-        date: new Date().toISOString()
-      }
-    ]
+    profile.chatHistory && profile.chatHistory.length > 0
+      ? profile.chatHistory
+      : [defaultInitialMessage]
   );
 
   useEffect(() => {
-    if (profile.chatHistory) {
-      if (profile.chatHistory.length === 0) {
-        setChatMessages([
-          {
-            role: 'model',
-            text: `Namaste **${profile.name}**! Main aapka AI Mentor Mitra hoon. \n\nAap jis bhi topic ya concept me comfortable feel nahi kar rahe hain, mujhe batayein. Main aapki target performance aur dynamic weak areas ko focus karke revision tips, active recall strategies aur guidance provide karunga.`,
-            date: new Date().toISOString()
-          }
-        ]);
-      } else {
-        setChatMessages(profile.chatHistory);
-      }
+    if (profile.chatHistory && profile.chatHistory.length > 0) {
+      setChatMessages(profile.chatHistory);
+    } else {
+      setChatMessages([defaultInitialMessage]);
     }
   }, [profile.chatHistory, profile.name]);
 
@@ -82,7 +75,7 @@ export default function AILearningDesk({
         triggerHaptic('success');
       }
     } catch (err) {
-      console.error("Failed to generate personalized guide:", err);
+      console.error("Failed to generate strategy:", err);
     } finally {
       setIsGeneratingStrategy(false);
     }
@@ -154,7 +147,7 @@ export default function AILearningDesk({
         ...prev,
         {
           role: 'model' as const,
-          text: 'Internet connectivity check karein ya thodi der baad dobara query karein.',
+          text: 'Internet connection check karein aur dobara try karein.',
           date: new Date().toISOString()
         }
       ]);
@@ -164,290 +157,247 @@ export default function AILearningDesk({
   };
 
   const promptSuggestions = [
-    "Mere performance goals design karo",
-    "Formula revision cheat sheet",
-    "Hinglish mock test strategy",
-    "Weak subtopics high impact list"
+    "Revision plan",
+    "Formula sheet",
+    "Weak topics drill",
+    "Exam tips"
   ];
 
   return (
-    <div id="ai-personalised-hub" className="bento-card border-brand/20 bg-[#0d101a] overflow-hidden my-4 p-4 sm:p-6 shadow-premium">
+    <div id="ai-personalised-hub" className="bento-card border-brand/20 bg-[#0d101a] my-4 p-4 sm:p-6 shadow-premium">
       
-      {/* Offline Alert Banner if disconnected */}
+      {/* Offline Alert */}
       {!isOnline && (
-        <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2.5 text-amber-300 text-xs font-bold">
-          <WifiOff className="w-4 h-4 shrink-0 text-amber-400" />
-          <span>Offline Mode: AI Mentor Desk needs internet. All practice tests & question sets work 100% offline!</span>
+        <div className="mb-3 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2 text-amber-300 text-xs font-semibold">
+          <WifiOff className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+          <span>Offline mode: AI Mentor requires internet connection.</span>
         </div>
       )}
 
-      {/* Top Header with Tab Control */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-white/5 pb-4 mb-4">
-        <div className="flex items-center justify-between sm:justify-start">
-          <span className="flex items-center gap-1.5 text-xs bg-brand/10 border border-brand/20 text-brand-light px-3 py-1.5 rounded-full uppercase tracking-wider font-extrabold leading-none">
-            <Sparkles className="w-3.5 h-3.5 text-brand-light" /> AI Learning & Strategy Desk
-          </span>
+      {/* Header Tabs */}
+      <div className="flex items-center justify-between gap-3 border-b border-white/5 pb-3 mb-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-brand-light" />
+          <h3 className="text-sm font-bold text-white tracking-wide">AI Mentor</h3>
         </div>
 
-        {/* Tab switchers */}
-        <div className="flex bg-slate-950/80 p-1 border border-white/10 rounded-2xl shrink-0 w-full sm:w-auto">
+        {/* Tab Switcher */}
+        <div className="flex bg-slate-950 p-1 border border-white/10 rounded-xl shrink-0">
           <button 
             onClick={() => { triggerHaptic('light'); setActiveTab('strategy'); }}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold leading-none rounded-xl transition-all cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'strategy' 
-                ? 'bg-brand text-white shadow-md shadow-brand/20' 
+                ? 'bg-brand text-white shadow-sm' 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Target className="w-4 h-4" /> Strategy & Goals
+            <Target className="w-3.5 h-3.5" /> Strategy
           </button>
           <button 
             onClick={() => { triggerHaptic('light'); setActiveTab('mentor'); }}
-            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold leading-none rounded-xl transition-all cursor-pointer ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'mentor' 
-                ? 'bg-brand text-white shadow-md shadow-brand/20' 
+                ? 'bg-brand text-white shadow-sm' 
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <MessageSquare className="w-4 h-4" /> 
-            <span>Chat Mitra AI</span>
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse inline-block"></span>
+            <MessageSquare className="w-3.5 h-3.5" /> Chat
           </button>
         </div>
       </div>
 
-      <div className="w-full flex flex-col min-h-[360px] relative">
+      <div className="w-full">
         <AnimatePresence mode="wait">
           {activeTab === 'strategy' ? (
             <motion.div
               key="strategy-tab"
-              initial={{ opacity: 0, scale: 0.99 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.99 }}
-              className="flex flex-col h-full justify-between py-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-4"
             >
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3.5 mb-3.5">
-                  <div>
-                    <h3 className="text-sm font-black text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                      <Target className="w-4 h-4 text-brand" /> Dynamic Milestones & Strategy
-                    </h3>
-                    {profile.aiMentorPlan?.lastStructuredDate && (
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                        Last Updated: {profile.aiMentorPlan.lastStructuredDate}
-                      </p>
-                    )}
-                  </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-400">
+                  {profile.aiMentorPlan?.lastStructuredDate ? `Updated: ${profile.aiMentorPlan.lastStructuredDate}` : 'Milestones'}
+                </span>
 
-                  <button
-                    onClick={handleGenerateStrategy}
-                    disabled={isGeneratingStrategy || !isOnline}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brand/10 border border-brand/20 hover:bg-brand/20 text-brand-light hover:text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shrink-0 w-full sm:w-auto disabled:opacity-50"
-                  >
-                    {isGeneratingStrategy ? (
-                      <>Rebuilding... <Loader2 className="w-4 h-4 animate-spin" /></>
-                    ) : (
-                      <>Program AI Roadmap <RefreshCw className="w-4 h-4" /></>
-                    )}
-                  </button>
-                </div>
-
-                {profile.aiMentorPlan ? (
-                  <div className="space-y-4 w-full">
-                    <div className="w-full">
-                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-                        Active Study Milestones:
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
-                        {profile.aiMentorPlan.milestones.map((milestone, idx) => (
-                          <div 
-                            key={idx}
-                            onClick={() => handleToggleMilestone(idx)}
-                            className={`flex items-start gap-3 p-4 bg-slate-900/90 border hover:border-brand/40 rounded-2xl cursor-pointer transition-all ${
-                              milestone.completed ? 'border-brand/30 bg-brand/10' : 'border-white/5'
-                            }`}
-                          >
-                            <div className="shrink-0 mt-0.5">
-                              {milestone.completed ? (
-                                <CheckCircle2 className="w-4 h-4 text-brand fill-brand/20" />
-                              ) : (
-                                <Circle className="w-4 h-4 text-slate-600" />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <span className={`text-xs sm:text-sm font-bold leading-normal block ${
-                                milestone.completed ? 'text-slate-400 line-through font-medium' : 'text-slate-200'
-                              }`}>
-                                {milestone.title}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-10 px-4 bg-slate-900/40 rounded-2xl border border-white/5">
-                    <Sparkles className="w-10 h-10 text-brand mx-auto mb-3 animate-bounce" />
-                    <h4 className="text-base font-black text-white mb-1">Tailored Preparation Roadmap</h4>
-                    <p className="text-xs text-slate-400 max-w-xl mx-auto leading-relaxed">
-                      Aapke strong aur weak areas ke basis par AI exam syllabus ke liye smart strategy formulate karega. Upar 'Program AI Roadmap' button par click karein!
-                    </p>
-                  </div>
-                )}
+                <button
+                  onClick={handleGenerateStrategy}
+                  disabled={isGeneratingStrategy || !isOnline}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-brand/10 hover:bg-brand/20 text-brand-light text-xs font-bold rounded-lg transition-all cursor-pointer border border-brand/20 disabled:opacity-50"
+                >
+                  {isGeneratingStrategy ? (
+                    <>Updating <Loader2 className="w-3.5 h-3.5 animate-spin" /></>
+                  ) : (
+                    <>Refresh <RefreshCw className="w-3.5 h-3.5" /></>
+                  )}
+                </button>
               </div>
 
-              {/* Instant Custom Goal Drill Launcher */}
+              {profile.aiMentorPlan && profile.aiMentorPlan.milestones?.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {profile.aiMentorPlan.milestones.map((milestone, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => handleToggleMilestone(idx)}
+                      className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                        milestone.completed 
+                          ? 'border-brand/30 bg-brand/5 text-slate-400 line-through' 
+                          : 'border-white/5 bg-slate-900/60 hover:border-brand/30 text-slate-200'
+                      }`}
+                    >
+                      <div className="shrink-0 mt-0.5">
+                        {milestone.completed ? (
+                          <CheckCircle2 className="w-4 h-4 text-brand" />
+                        ) : (
+                          <Circle className="w-4 h-4 text-slate-600" />
+                        )}
+                      </div>
+                      <span className="text-xs sm:text-sm font-medium leading-tight">
+                        {milestone.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 px-4 bg-slate-900/40 rounded-xl border border-white/5">
+                  <p className="text-xs text-slate-400">Click 'Refresh' to build your personalized milestones.</p>
+                </div>
+              )}
+
+              {/* Action Button */}
               {profile.aiMentorPlan && (() => {
                 const completedMilestones = profile.aiMentorPlan.milestones?.filter(m => m.completed) || [];
                 const hasCompletedMilestones = completedMilestones.length > 0;
                 return (
-                  <div className="mt-6 border-t border-white/5 pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <h5 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-2 justify-center sm:justify-start">
-                        <Sparkles className={`w-4 h-4 ${hasCompletedMilestones ? 'text-emerald-400' : 'text-brand'}`} /> 
-                        {hasCompletedMilestones ? 'Practice Completed Milestones' : 'Launch Focused Practice Test'}
-                      </h5>
-                      <p className="text-xs text-slate-400 text-center sm:text-left mt-0.5 leading-normal">
-                        {hasCompletedMilestones 
-                          ? `Milestone topics: "${completedMilestones.map(m => m.title).join(', ')}" par targeted practice test chalu hoga.`
-                          : 'Target weak topics par customized active recall practice session chalu karein.'}
-                      </p>
-                    </div>
-
+                  <div className="pt-2">
                     <button
                       onClick={() => {
                         triggerHaptic('success');
                         if (hasCompletedMilestones) {
                           const milestoneTitles = completedMilestones.map(m => m.title).join(', ');
-                          onStartCustomDrill(`Please generate a practice/mock test of 10 questions focused SPECIFICALLY on: ${milestoneTitles} for ${profile.exam}.`);
+                          onStartCustomDrill(`10 questions mock test focused on: ${milestoneTitles} for ${profile.exam}.`);
                         } else {
                           const weakTopicsStr = profile.performance.weakTopics.join(', ') || 'core chapters';
-                          onStartCustomDrill(`Please generate a practice test focused on active recall of: ${weakTopicsStr} for ${profile.exam}.`);
+                          onStartCustomDrill(`10 questions test on: ${weakTopicsStr} for ${profile.exam}.`);
                         }
                       }}
-                      className={`w-full sm:w-auto px-6 py-3 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 cursor-pointer shrink-0 text-center shadow-lg ${
-                        hasCompletedMilestones 
-                          ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/25' 
-                          : 'bg-brand hover:bg-brand-light shadow-brand/25'
-                      }`}
+                      className="w-full py-3 bg-brand hover:bg-brand-light text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
                     >
-                      {hasCompletedMilestones ? 'Test Milestones 🎯' : 'Practice Weak Areas ⚡'}
+                      <Sparkles className="w-4 h-4" />
+                      <span>{hasCompletedMilestones ? 'Test Completed Milestones' : 'Practice Target Topics'}</span>
                     </button>
                   </div>
                 );
               })()}
             </motion.div>
           ) : (
-            // INTERACTIVE MENTOR CHAT DESK (MITRA AI)
+            // Chat View
             <motion.div
               key="mentor-tab"
-              initial={{ opacity: 0, scale: 0.99 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.99 }}
-              className="flex flex-col h-full justify-between p-4 sm:p-5 bg-slate-950/60 border border-brand/25 rounded-2xl shadow-inner relative overflow-hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col h-full"
             >
-              <div className="flex items-center justify-between border-b border-white/5 pb-2.5 mb-2.5 shrink-0">
-                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                  Mitra AI Live Tutor ⚡
-                </span>
+              {/* Chat Header Actions */}
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/5">
+                <span className="text-[11px] font-semibold text-slate-400">Mitra Tutor</span>
                 {chatMessages.length > 1 && onClearChatHistory && (
                   <button
                     onClick={() => {
                       triggerHaptic('warning');
-                      if (window.confirm("Mitra AI chat history clear karein?")) {
+                      if (window.confirm("Clear chat history?")) {
                         onClearChatHistory();
                       }
                     }}
-                    className="text-[10px] font-bold text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 px-3 py-1 rounded-lg transition-all cursor-pointer uppercase tracking-wider"
+                    className="text-[11px] text-rose-400 hover:text-rose-300 flex items-center gap-1 font-medium cursor-pointer"
                   >
-                    Clear Chat 🗑️
+                    <Trash2 className="w-3 h-3" /> Clear
                   </button>
                 )}
               </div>
 
-              {/* Chat Display Box */}
+              {/* Chat Message Stream */}
               <div 
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto h-[60vh] min-h-[350px] max-h-[70vh] md:h-[480px] pr-1.5 mb-3.5 space-y-3.5 custom-scrollbar"
+                className="overflow-y-auto max-h-[380px] min-h-[220px] pr-1 space-y-3 mb-3 custom-scrollbar"
               >
                 {chatMessages.map((msg, idx) => (
                   <div 
                     key={idx}
-                    className={`flex gap-3 max-w-full sm:max-w-[95%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
+                    className={`flex gap-2 max-w-full ${msg.role === 'user' ? 'ml-auto justify-end' : ''}`}
                   >
-                    <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center border h-max ${
-                      msg.role === 'user' 
-                        ? 'bg-indigo-600/20 border-indigo-500/30 text-indigo-400' 
-                        : 'bg-brand/20 border-brand/30 text-brand-light'
-                    }`}>
-                      {msg.role === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                    </div>
+                    {msg.role !== 'user' && (
+                      <div className="w-7 h-7 rounded-full shrink-0 bg-brand/20 border border-brand/30 text-brand-light flex items-center justify-center mt-0.5">
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </div>
+                    )}
                     
-                    <div className={`p-3.5 rounded-2xl leading-relaxed text-xs sm:text-sm font-medium ${
+                    <div className={`p-3 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[85%] ${
                       msg.role === 'user' 
-                        ? 'bg-indigo-600/20 text-white border border-indigo-500/20 rounded-tr-none' 
-                        : 'bg-slate-900/90 text-slate-200 border border-white/10 rounded-tl-none'
+                        ? 'bg-brand text-white rounded-tr-none' 
+                        : 'bg-slate-900 text-slate-200 border border-white/10 rounded-tl-none'
                     }`}>
                       <MarkdownRenderer text={msg.text} />
                     </div>
+
+                    {msg.role === 'user' && (
+                      <div className="w-7 h-7 rounded-full shrink-0 bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 flex items-center justify-center mt-0.5">
+                        <User className="w-3.5 h-3.5" />
+                      </div>
+                    )}
                   </div>
                 ))}
 
                 {isChatting && (
-                  <div className="flex gap-2.5 max-w-full sm:max-w-[95%]">
-                    <div className="w-8 h-8 rounded-full shrink-0 bg-brand/20 border border-brand/30 text-brand-light flex items-center justify-center animate-pulse">
-                      <Sparkles className="w-4 h-4 animate-spin" />
-                    </div>
-                    <div className="p-3 bg-slate-900/80 text-slate-400 border border-white/5 rounded-2xl rounded-tl-none text-xs italic flex items-center gap-1.5 font-medium animate-pulse">
-                      Mitra AI is preparing your study guidance...
-                    </div>
+                  <div className="flex gap-2 items-center text-xs text-slate-400 italic">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-brand" />
+                    <span>Mitra AI is typing...</span>
                   </div>
                 )}
               </div>
 
-              {/* Suggestions Chips */}
+              {/* Quick suggestions */}
               {chatMessages.length <= 2 && !isChatting && (
-                <div className="mb-3">
-                  <span className="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-2">Suggested questions:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {promptSuggestions.map((prompt, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleSendChat(prompt)}
-                        className="px-3 py-1.5 bg-slate-900 hover:bg-brand/20 hover:text-white border border-white/5 hover:border-brand/30 rounded-xl text-xs text-slate-300 font-bold transition-all cursor-pointer"
-                      >
-                        {prompt}
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {promptSuggestions.map((prompt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSendChat(prompt)}
+                      className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-white/5 rounded-lg text-xs text-slate-300 font-medium transition-all cursor-pointer"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
                 </div>
               )}
 
-              {/* Chat input form panel */}
-              <div className="flex gap-2.5 border-t border-white/5 pt-3.5 items-center">
+              {/* Chat Input Bar - Guaranteed Send Button Visibility */}
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendChat();
+                }}
+                className="flex items-center gap-2 pt-2 border-t border-white/5 w-full"
+              >
                 <input
                   type="text"
-                  className="flex-1 bg-slate-900 border border-brand/30 focus:border-brand text-white px-4 py-3 text-sm rounded-xl focus:outline-none focus:ring-1 focus:ring-brand/40 shadow-inner"
-                  placeholder={isOnline ? "Ask study plan, formula derivation, weak areas..." : "Connect internet to use AI chat..."}
+                  className="flex-1 min-w-0 bg-slate-900 border border-slate-800 focus:border-brand text-white px-3.5 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-brand"
+                  placeholder={isOnline ? "Ask question or topic..." : "Connect internet to chat..."}
                   value={chatIn}
                   onChange={(e) => setChatIn(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSendChat();
-                    }
-                  }}
                   disabled={isChatting || !isOnline}
                 />
                 <button
-                  onClick={() => handleSendChat()}
+                  type="submit"
                   disabled={isChatting || !isOnline || !chatIn.trim()}
-                  className="px-4 py-3 bg-brand hover:bg-brand-light text-white rounded-xl shadow-lg shadow-brand/25 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center shrink-0 cursor-pointer font-bold"
-                  title="Send Message"
+                  className="w-10 h-10 shrink-0 bg-brand hover:bg-brand-light text-white rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-all disabled:opacity-40 cursor-pointer"
+                  title="Send"
                 >
                   <Send className="w-4 h-4" />
                 </button>
-              </div>
+              </form>
             </motion.div>
           )}
         </AnimatePresence>
