@@ -243,13 +243,15 @@ export default function App() {
       
       const isExplicitTopic = !!(specificTopics && specificTopics.length > 0) || !!(setup?.customTopic && setup.customTopic.trim() !== '');
       
+      const count = setup?.questionCount && [5, 8, 10].includes(setup.questionCount) ? setup.questionCount : 10;
+
       // If online, attempt AI question generation; otherwise use local offline question bank
       let generatedQuestions: Question[] = [];
       if (isOnline) {
         generatedQuestions = await generateQuestionsAPI(
           topics, 
           setup?.difficulty || 'Medium', 
-          10, 
+          count, 
           profile.exam || "SSC CGL",
           seenIds,
           profile.performance,
@@ -273,13 +275,13 @@ export default function App() {
         });
         const newSeen = [...new Set([...seenIds, ...uniqueQuestions.map(q => q.id)])].slice(-100);
         localStorage.setItem('seen_questions', JSON.stringify(newSeen));
-        setCurrentTestQuestions(uniqueQuestions);
+        setCurrentTestQuestions(uniqueQuestions.slice(0, count));
       } else {
         // Offline Fallback from local question database
         const filtered = QUESTIONS.filter(q => 
           topics.some(t => q.topic.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(q.topic.toLowerCase()))
         );
-        const fallbackRaw = filtered.length >= 5 ? filtered.slice(0, 10) : QUESTIONS.slice(0, 10);
+        const fallbackRaw = filtered.length >= count ? filtered.slice(0, count) : QUESTIONS.slice(0, count);
         const fallbackSet = fallbackRaw.map((q, idx) => ({
           ...q,
           id: `${q.id}_off_${idx}_${Date.now()}`
@@ -291,7 +293,8 @@ export default function App() {
       setAiAnalysis(null);
     } catch (error) {
       console.error("Failed to start test:", error);
-      setCurrentTestQuestions(QUESTIONS.slice(0, 10));
+      const fallbackCount = setup?.questionCount || 10;
+      setCurrentTestQuestions(QUESTIONS.slice(0, fallbackCount));
       setAppState('testing');
     } finally {
       setIsLoading(false);

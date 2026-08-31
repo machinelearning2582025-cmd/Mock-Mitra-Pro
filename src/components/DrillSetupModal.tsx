@@ -15,6 +15,7 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam, initia
   const [customTopic, setCustomTopic] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+  const [questionCount, setQuestionCount] = useState<5 | 8 | 10>(10);
   const [studyScheme, setStudyScheme] = useState<'PYQ & Important based' | 'Study based Imp' | 'Pure System'>('Pure System');
   const [files, setFiles] = useState<DrillFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,11 +54,13 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam, initia
       customPrompt, 
       files, 
       difficulty,
+      questionCount,
       studyScheme
     });
     setCustomTopic('');
     setCustomPrompt('');
     setDifficulty('Medium');
+    setQuestionCount(10);
     setStudyScheme('Pure System');
     setFiles([]);
   };
@@ -108,6 +111,37 @@ export default function DrillSetupModal({ isOpen, onClose, onStart, exam, initia
                   placeholder="E.g., Trigonometry, Biology Plant Cell, ancient history, etc."
                   className="w-full px-4 py-3 bg-white dark:bg-[#0a0d14] border border-slate-300 dark:border-white/10 rounded-xl focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none transition-all text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-700"
                 />
+              </div>
+
+              {/* Number of Questions Selection (5, 8, 10) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between pl-1">
+                  <label className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-widest flex items-center gap-2">
+                    <Target className="w-3.5 h-3.5 text-brand" strokeWidth={3} /> Number of Questions
+                  </label>
+                  <span className="text-[10px] font-bold text-brand">{questionCount} Qs ({questionCount} min test)</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {([
+                    { count: 5, label: '5 Questions', sub: '5-Min Sprint' },
+                    { count: 8, label: '8 Questions', sub: '8-Min Standard' },
+                    { count: 10, label: '10 Questions', sub: '10-Min Full Test' }
+                  ] as const).map((item) => (
+                    <button
+                      key={item.count}
+                      type="button"
+                      onClick={() => setQuestionCount(item.count)}
+                      className={`p-3 rounded-xl font-bold transition-all border-2 flex flex-col items-center justify-center text-center cursor-pointer ${
+                        questionCount === item.count 
+                          ? 'bg-brand/20 border-brand text-brand shadow-lg shadow-brand/10' 
+                          : 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/10'
+                      }`}
+                    >
+                      <span className="text-xs font-black uppercase tracking-wider">{item.label}</span>
+                      <span className="text-[9px] font-medium opacity-70 mt-0.5">{item.sub}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Difficulty Selection */}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Clock, ChevronRight, ChevronLeft, Zap, CheckCircle2 } from 'lucide-react';
+import { Clock, ChevronRight, ChevronLeft, Zap, CheckCircle2, Award } from 'lucide-react';
 import { Question, Topic } from '../types';
 import { triggerHaptic } from '../services/nativeService';
 
@@ -39,7 +39,7 @@ export default function TestRunner({ questions, onComplete }: TestRunnerProps) {
     return () => clearInterval(timer);
   }, [isSubmitted]);
 
-  const currentQuestion = questions[currentIndex];
+  const currentQuestion = questions[currentIndex] || questions[0];
 
   const handleAnswer = (optionIndex: number) => {
     triggerHaptic('light');
@@ -68,193 +68,177 @@ export default function TestRunner({ questions, onComplete }: TestRunnerProps) {
     onComplete({
       score,
       total: questions.length,
-      timeSpent: Math.floor((Date.now() - startTime) / 1000),
+      timeSpent: Math.max(1, Math.floor((Date.now() - startTime) / 1000)),
       topicPerformance: topicPerf,
       userAnswers: answers
     });
   };
 
-  const progress = ((currentIndex + 1) / questions.length) * 100;
+  const answeredCount = Object.keys(answers).length;
+  const isLastQuestion = currentIndex === questions.length - 1;
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 min-h-[580px]">
-        
-        {/* Main Question & Option Area */}
-        <div className="lg:col-span-8 flex flex-col gap-4 order-2 lg:order-1">
-          <div className="bento-card border-slate-200 dark:border-brand/25 p-5 sm:p-8 bg-white dark:bg-[#0b0e17] relative overflow-hidden flex flex-col justify-between shadow-xl dark:shadow-2xl">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-brand/5 dark:bg-brand/10 blur-3xl rounded-full pointer-events-none"></div>
-            
-            {/* Question Header & Live Timer */}
-            <header className="flex items-center justify-between gap-4 mb-6 sm:mb-8 relative z-10 border-b border-slate-100 dark:border-white/5 pb-4">
-              <div>
-                <span className="text-xs font-black uppercase text-brand tracking-[0.2em] mb-1 block">
-                  Question {currentIndex + 1} of {questions.length}
-                </span>
-                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <span className="text-slate-900 dark:text-white font-black">{currentQuestion.subject}</span>
-                  <span className="w-1 h-1 bg-slate-400 dark:bg-slate-600 rounded-full"></span> 
-                  <span>{currentQuestion.topic}</span>
-                </p>
-              </div>
+    <div className="w-full max-w-4xl mx-auto px-3.5 sm:px-6 pt-3 sm:pt-6 pb-28 sm:pb-32">
+      
+      {/* Sleek Top Header & Question Navigation Strip */}
+      <div className="mb-4 sm:mb-6 bg-white dark:bg-[#0c0f18] border border-slate-200 dark:border-white/5 rounded-2xl p-3.5 sm:p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] sm:text-xs font-black uppercase text-brand tracking-widest">
+                Question {currentIndex + 1} of {questions.length}
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400">
+                {answeredCount}/{questions.length} Done
+              </span>
+            </div>
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate mt-0.5">
+              {currentQuestion.subject} • <span className="text-slate-500 dark:text-slate-400 font-normal">{currentQuestion.topic}</span>
+            </p>
+          </div>
 
-              {/* High Contrast Live Countdown */}
-              <div className={`px-4 py-2.5 rounded-2xl border transition-all flex items-center gap-2.5 font-mono text-xl sm:text-2xl font-black ${
-                timeLeft < 60 
-                  ? 'bg-rose-500/15 border-rose-500 text-rose-600 dark:text-rose-400 animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.25)]' 
-                  : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white shadow-sm dark:shadow-lg'
-              }`}>
-                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-brand" />
-                <span>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
-              </div>
-            </header>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, scale: 0.98, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98, y: -8 }}
-                transition={{ duration: 0.2 }}
-                className="flex-grow flex flex-col justify-center w-full"
-              >
-                {/* Scaled-Up Question Title */}
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white leading-snug sm:leading-relaxed mb-6 sm:mb-8 text-pretty">
-                  {currentQuestion.question}
-                </h2>
-
-                {/* Options List with Scaled-Up Typography & Haptics */}
-                <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                  {currentQuestion.options.map((option, idx) => {
-                    const isSelected = answers[currentQuestion.id] === idx;
-                    return (
-                      <motion.button
-                        whileTap={{ scale: 0.98 }}
-                        key={idx}
-                        onClick={() => handleAnswer(idx)}
-                        className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all flex items-center gap-4 sm:gap-5 group relative overflow-hidden cursor-pointer ${
-                          isSelected
-                            ? 'border-brand bg-blue-50/70 dark:bg-brand/15 shadow-[0_0_25px_rgba(37,99,235,0.15)]'
-                            : 'border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/80 hover:border-brand/40 hover:bg-slate-100 dark:hover:bg-slate-900'
-                        }`}
-                      >
-                        {isSelected && (
-                          <motion.div layoutId="active-pill" className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand" />
-                        )}
-                        
-                        {/* Option Letter Badge */}
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-sm sm:text-base font-black border-2 transition-all shrink-0 ${
-                          isSelected
-                            ? 'bg-brand border-brand text-white shadow-md'
-                            : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white group-hover:border-slate-400'
-                        }`}>
-                          {String.fromCharCode(65 + idx)}
-                        </div>
-
-                        {/* Option Text */}
-                        <span className={`text-base sm:text-lg lg:text-xl font-bold transition-colors leading-normal flex-1 ${
-                          isSelected ? 'text-brand dark:text-white' : 'text-slate-800 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white'
-                        }`}>
-                          {option}
-                        </span>
-
-                        {isSelected && (
-                          <CheckCircle2 className="w-5 h-5 text-brand shrink-0 animate-in fade-in" />
-                        )}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="mt-8 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center gap-3">
-                  <button
-                    onClick={() => {
-                      triggerHaptic('light');
-                      setCurrentIndex(prev => Math.max(0, prev - 1));
-                    }}
-                    disabled={currentIndex === 0}
-                    className="py-4 px-5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all uppercase tracking-wider text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    <ChevronLeft className="w-4 h-4" /> Prev
-                  </button>
-
-                  {currentIndex === questions.length - 1 ? (
-                    <button
-                      onClick={handleSubmit}
-                      className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/30 transition-all uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-                    >
-                      <span>Final Submit</span>
-                      <Zap className="w-4 h-4 fill-current" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        triggerHaptic('light');
-                        setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1));
-                      }}
-                      className="flex-1 py-4 bg-brand hover:bg-brand-light text-white font-black rounded-2xl shadow-xl shadow-brand/25 transition-all uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-                    >
-                      <span>Next Question</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            </AnimatePresence>
+          {/* Countdown Timer */}
+          <div className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border flex items-center gap-1.5 font-mono text-sm sm:text-base font-black shrink-0 transition-all ${
+            timeLeft < 60 
+              ? 'bg-rose-500/15 border-rose-500 text-rose-600 dark:text-rose-400 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.2)]' 
+              : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200'
+          }`}>
+            <Clock className="w-4 h-4 text-brand shrink-0" />
+            <span>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
           </div>
         </div>
 
-        {/* Sidebar Question Palette & Progress */}
-        <div className="lg:col-span-4 flex flex-col gap-4 order-1 lg:order-2">
-          <div className="bento-card bg-white dark:bg-[#0e121d] border-slate-200 dark:border-brand/15 p-5 shadow-sm dark:shadow-none">
-            <h4 className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-4">Progress Monitor</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-end">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Answered:</span>
-                <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {Object.keys(answers).length} / {questions.length}
-                </span>
-              </div>
-              <div className="h-3 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-200 dark:border-white/10">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(Object.keys(answers).length / questions.length) * 100}%` }} 
-                  className="h-full bg-gradient-to-r from-brand to-emerald-500 rounded-full" 
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bento-card border-slate-200 dark:border-white/5 p-5 flex-grow bg-white dark:bg-[#0e121d] shadow-sm dark:shadow-none">
-            <h4 className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-4">Question Matrix</h4>
-            <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
-              {questions.map((_, idx) => {
-                const isCurrent = currentIndex === idx;
-                const isAnswered = answers[questions[idx].id] !== undefined;
+        {/* Compact Horizontal Sliding Question Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pt-3 pb-1 no-scrollbar">
+          {questions.map((q, idx) => {
+            const isCurrent = currentIndex === idx;
+            const isAnswered = answers[q.id] !== undefined;
+            return (
+              <button
+                key={q.id || idx}
+                type="button"
+                onClick={() => {
+                  triggerHaptic('light');
+                  setCurrentIndex(idx);
+                }}
+                className={`min-w-[34px] h-[34px] sm:min-w-[38px] sm:h-[38px] rounded-xl flex items-center justify-center text-xs font-black transition-all cursor-pointer relative shrink-0 ${
+                  isCurrent
+                    ? 'bg-brand text-white shadow-md shadow-brand/30 ring-2 ring-brand/30 scale-105'
+                    : isAnswered
+                      ? 'bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 dark:text-emerald-400'
+                      : 'bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                }`}
+              >
+                {idx + 1}
+                {isAnswered && !isCurrent && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Main Question & Options Card */}
+      <div className="bg-white dark:bg-[#0c0f18] border border-slate-200 dark:border-white/5 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-lg relative overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-col"
+          >
+            {/* Question Text */}
+            <h2 className="text-base sm:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white leading-relaxed mb-4 sm:mb-6">
+              {currentQuestion.question}
+            </h2>
+
+            {/* Compact, Ergonomic Options List */}
+            <div className="grid grid-cols-1 gap-2.5 sm:gap-3">
+              {currentQuestion.options.map((option, idx) => {
+                const isSelected = answers[currentQuestion.id] === idx;
                 return (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.99 }}
                     key={idx}
-                    onClick={() => {
-                      triggerHaptic('light');
-                      setCurrentIndex(idx);
-                    }}
-                    className={`w-full aspect-square rounded-xl flex items-center justify-center text-xs font-black border-2 transition-all cursor-pointer ${
-                      isCurrent 
-                        ? 'bg-brand border-brand text-white shadow-lg shadow-brand/40 scale-105 z-10' 
-                        : isAnswered
-                          ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 font-black'
-                          : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-white/20'
+                    type="button"
+                    onClick={() => handleAnswer(idx)}
+                    className={`w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all flex items-center gap-3 sm:gap-4 group relative cursor-pointer ${
+                      isSelected
+                        ? 'border-brand bg-blue-50/80 dark:bg-brand/15 shadow-sm'
+                        : 'border-slate-200 dark:border-white/5 bg-slate-50/80 dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-white/15'
                     }`}
                   >
-                    {idx + 1}
-                  </button>
+                    {/* Option Letter Badge */}
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center text-xs sm:text-sm font-black border transition-all shrink-0 ${
+                      isSelected
+                        ? 'bg-brand border-brand text-white'
+                        : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400'
+                    }`}>
+                      {String.fromCharCode(65 + idx)}
+                    </div>
+
+                    {/* Option Content Text */}
+                    <span className={`text-xs sm:text-sm lg:text-base font-semibold transition-colors flex-1 leading-snug ${
+                      isSelected ? 'text-brand dark:text-white font-bold' : 'text-slate-800 dark:text-slate-200'
+                    }`}>
+                      {option}
+                    </span>
+
+                    {isSelected && (
+                      <CheckCircle2 className="w-4 h-4 text-brand shrink-0 animate-in fade-in" />
+                    )}
+                  </motion.button>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Sticky / Fixed Bottom Navigation Bar (No more manual scrolling needed) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#090b12]/95 backdrop-blur-lg border-t border-slate-200 dark:border-white/10 px-4 sm:px-6 py-3 sm:py-3.5 shadow-2xl">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('light');
+              setCurrentIndex(prev => Math.max(0, prev - 1));
+            }}
+            disabled={currentIndex === 0}
+            className="py-3 px-4 sm:px-5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-30 disabled:pointer-events-none transition-all"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Prev</span>
+          </button>
+
+          {isLastQuestion ? (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="flex-1 py-3 px-5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl shadow-lg shadow-emerald-600/25 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
+            >
+              <Award className="w-4 h-4" />
+              <span>Submit Test ({answeredCount}/{questions.length})</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('light');
+                setCurrentIndex(prev => Math.min(questions.length - 1, prev + 1));
+              }}
+              className="flex-1 py-3 px-5 bg-brand hover:bg-brand-light text-white font-black rounded-xl shadow-lg shadow-brand/25 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
+            >
+              <span>Next Question</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
+
     </div>
   );
 }
