@@ -406,6 +406,7 @@ export async function generateQuestionsAPI(
 
     if (allQuestionsCombined.length > 0) {
       // Clean, validate and prevent runtime UI crashes
+      const seenIds = new Set<string>();
       const sanitized = allQuestionsCombined.map((item: any, idx: number) => {
         const itemOptions = Array.isArray(item.options) && item.options.length >= 2 
           ? item.options 
@@ -416,8 +417,15 @@ export async function generateQuestionsAPI(
           corrAns = 0;
         }
 
+        const rawId = item.id ? String(item.id).trim() : `gen_${idx}_${Date.now()}`;
+        let uniqueId = rawId;
+        if (seenIds.has(uniqueId)) {
+          uniqueId = `${rawId}_b${idx}_${Math.random().toString(36).substring(2, 7)}`;
+        }
+        seenIds.add(uniqueId);
+
         return {
-          id: item.id ? String(item.id) : `gen-${idx}-${Date.now()}`,
+          id: uniqueId,
           subject: item.subject ? String(item.subject) : (topics[idx % topics.length] || "General"),
           topic: item.topic ? String(item.topic) : (topics[idx % topics.length] || "General Concept"),
           question: item.question ? String(item.question) : `Identify correct conceptual fact about ${topics[idx % topics.length] || "selected subject"}.`,

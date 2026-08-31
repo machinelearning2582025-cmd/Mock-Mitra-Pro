@@ -287,16 +287,17 @@ export function usePersistence() {
       try {
         const activeProfile = finalProfile || { ...profile, ...updates };
         await saveUserProfileToFirestore(firebaseUser.uid, {
-          name: activeProfile.name,
-          exam: activeProfile.exam,
-          language: activeProfile.language,
+          name: activeProfile.name || '',
+          email: firebaseUser.email || activeProfile.email || '',
+          exam: activeProfile.exam || '',
+          language: activeProfile.language || 'Hinglish',
           customExamDetails: activeProfile.customExamDetails || null,
-          onboarded: activeProfile.onboarded,
-          streak: activeProfile.performance.streak,
-          strongTopics: activeProfile.performance.strongTopics,
-          weakTopics: activeProfile.performance.weakTopics,
-          knowledgeProfile: activeProfile.performance.knowledgeProfile,
-          lastAiAnalysis: activeProfile.performance.lastAiAnalysis || null,
+          onboarded: activeProfile.onboarded || false,
+          streak: activeProfile.performance?.streak || 0,
+          strongTopics: activeProfile.performance?.strongTopics || [],
+          weakTopics: activeProfile.performance?.weakTopics || [],
+          knowledgeProfile: activeProfile.performance?.knowledgeProfile || {},
+          lastAiAnalysis: activeProfile.performance?.lastAiAnalysis || null,
           customStudyNotes: activeProfile.customStudyNotes || null,
           learningGoals: activeProfile.learningGoals || null,
           aiMentorPlan: activeProfile.aiMentorPlan || null,
@@ -388,6 +389,9 @@ export function usePersistence() {
           console.error("Background error saving test to Firestore:", err);
         });
         saveUserProfileToFirestore(firebaseUser.uid, {
+          name: newProfile.name || '',
+          email: firebaseUser.email || newProfile.email || '',
+          onboarded: newProfile.onboarded || false,
           streak,
           strongTopics,
           weakTopics,

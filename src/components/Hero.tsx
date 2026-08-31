@@ -19,12 +19,12 @@ export default function Hero({ onStart, onStartGoogle }: HeroProps) {
         </div>
 
         {/* Crisp Headline */}
-        <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight tracking-tight mb-4">
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white leading-tight tracking-tight mb-4">
           Master Your Exam in <span className="text-brand">20 Minutes</span> a Day
         </h1>
 
         {/* Clean Subtitle */}
-        <p className="text-sm sm:text-base text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
           High-yield mock tests, instant doubt assistance, and topic mastery tracking tailored for your target exam.
         </p>
 
@@ -48,7 +48,7 @@ export default function Hero({ onStart, onStartGoogle }: HeroProps) {
 
           <button
             onClick={onStart}
-            className="w-full py-3.5 px-6 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-bold rounded-xl transition-all active:scale-98 text-sm flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3.5 px-6 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-800 font-bold rounded-xl transition-all active:scale-98 text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm dark:shadow-none"
           >
             <span>Guest Practice</span>
             <ArrowRight className="w-4 h-4" />
@@ -56,17 +56,17 @@ export default function Hero({ onStart, onStartGoogle }: HeroProps) {
         </div>
 
         {/* Minimal Feature Highlights */}
-        <div className="grid grid-cols-3 gap-3 mt-12 pt-8 border-t border-white/5 max-w-md mx-auto text-center">
+        <div className="grid grid-cols-3 gap-3 mt-12 pt-8 border-t border-slate-200 dark:border-white/5 max-w-md mx-auto text-center">
           <div>
-            <div className="text-base sm:text-lg font-bold text-white">100%</div>
+            <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">100%</div>
             <div className="text-[11px] text-slate-500 font-medium">Offline Ready</div>
           </div>
           <div>
-            <div className="text-base sm:text-lg font-bold text-white">Adaptive</div>
+            <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Adaptive</div>
             <div className="text-[11px] text-slate-500 font-medium">Topic Drills</div>
           </div>
           <div>
-            <div className="text-base sm:text-lg font-bold text-white">Instant</div>
+            <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Instant</div>
             <div className="text-[11px] text-slate-500 font-medium">AI Insights</div>
           </div>
         </div>

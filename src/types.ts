@@ -55,6 +55,7 @@ export interface UserProfile {
   name: string;
   exam: string;
   language: string;
+  theme?: 'dark' | 'light' | 'system';
   customExamDetails?: string;
   onboarded: boolean;
   performance: UserPerformance;

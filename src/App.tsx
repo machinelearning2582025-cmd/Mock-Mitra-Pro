@@ -9,6 +9,7 @@ import SettingsView from './components/SettingsView';
 import PWAInstallModal from './components/PWAInstallModal';
 import SidebarDrawer from './components/SidebarDrawer';
 import { usePersistence } from './hooks/usePersistence';
+import { useTheme } from './hooks/useTheme';
 import { QUESTIONS } from './data/questions';
 import { generateQuestionsAPI, analyzePerformanceAPI, updatePersonalisedProfileBackgroundAPI } from './services/api';
 import { Topic, Question, DrillSetup } from './types';
@@ -261,15 +262,28 @@ export default function App() {
       }
 
       if (generatedQuestions && generatedQuestions.length > 0) {
-        const newSeen = [...new Set([...seenIds, ...generatedQuestions.map(q => q.id)])].slice(-100);
+        const seenCurrent = new Set<string>();
+        const uniqueQuestions = generatedQuestions.map((q, idx) => {
+          let id = q.id || `q_${idx}`;
+          if (seenCurrent.has(id)) {
+            id = `${id}_${idx}_${Date.now()}`;
+          }
+          seenCurrent.add(id);
+          return { ...q, id };
+        });
+        const newSeen = [...new Set([...seenIds, ...uniqueQuestions.map(q => q.id)])].slice(-100);
         localStorage.setItem('seen_questions', JSON.stringify(newSeen));
-        setCurrentTestQuestions(generatedQuestions);
+        setCurrentTestQuestions(uniqueQuestions);
       } else {
         // Offline Fallback from local question database
         const filtered = QUESTIONS.filter(q => 
           topics.some(t => q.topic.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(q.topic.toLowerCase()))
         );
-        const fallbackSet = filtered.length >= 5 ? filtered.slice(0, 10) : QUESTIONS.slice(0, 10);
+        const fallbackRaw = filtered.length >= 5 ? filtered.slice(0, 10) : QUESTIONS.slice(0, 10);
+        const fallbackSet = fallbackRaw.map((q, idx) => ({
+          ...q,
+          id: `${q.id}_off_${idx}_${Date.now()}`
+        }));
         setCurrentTestQuestions(fallbackSet);
       }
       
@@ -415,18 +429,18 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080a10] text-slate-200 animate-pulse">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#080a10] text-slate-800 dark:text-slate-200 animate-pulse">
         <div className="text-center p-8">
           <Loader2 className="w-12 h-12 text-brand animate-spin mx-auto mb-4" />
-          <h3 className="text-xl font-bold mb-2 text-white">Connecting to MockMitra...</h3>
-          <p className="text-slate-400 text-sm">Initializing hybrid offline-first environment...</p>
+          <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Connecting to MockMitra...</h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Initializing hybrid offline-first environment...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#080a10] text-slate-100 pb-20 sm:pb-0">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#080a10] text-slate-900 dark:text-slate-100 pb-20 sm:pb-0 transition-colors duration-200">
       
       {/* Offline Status Alert Banner */}
       {!isOnline && (
@@ -443,13 +457,13 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-[#080a10]/85 backdrop-blur-sm"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-[#080a10]/85 backdrop-blur-sm"
               id="loading-overlay"
             >
-              <div className="text-center p-8 bento-card border-brand/40 bg-[#0d101a] shadow-2xl">
+              <div className="text-center p-8 bento-card border-slate-200 dark:border-brand/40 bg-white dark:bg-[#0d101a] shadow-2xl">
                 <Loader2 className="w-12 h-12 text-brand animate-spin mx-auto mb-4" />
-                <h3 className="text-xl font-black mb-2 text-white">Preparing Your Practice Test...</h3>
-                <p className="text-slate-400 text-sm font-medium">Curating exam questions & topics for you.</p>
+                <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-white">Preparing Your Practice Test...</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Curating exam questions & topics for you.</p>
               </div>
             </motion.div>
           )}
@@ -569,7 +583,7 @@ export default function App() {
 
       {/* Native App Bottom Dock for Mobile Screens (when onboarded and not in active test) */}
       {profile.onboarded && appState !== 'testing' && (
-        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0b0e17]/95 backdrop-blur-xl border-t border-white/10 px-4 py-2 safe-bottom-dock">
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0b0e17]/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 px-4 py-2 safe-bottom-dock shadow-lg dark:shadow-none transition-colors duration-200">
           <div className="flex items-center justify-around">
             <button
               onClick={() => {
@@ -578,7 +592,7 @@ export default function App() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
-                appState === 'dashboard' ? 'text-brand font-black' : 'text-slate-400 font-medium'
+                appState === 'dashboard' ? 'text-brand font-black' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-medium'
               }`}
             >
               <LayoutDashboard className="w-5 h-5" />
@@ -591,12 +605,12 @@ export default function App() {
                 setDrillInitialTopic('');
                 setIsDrillSetupOpen(true);
               }}
-              className="flex flex-col items-center gap-1 py-1 px-3 text-slate-400 hover:text-white font-medium transition-all cursor-pointer"
+              className="flex flex-col items-center gap-1 py-1 px-3 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-medium transition-all cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center -mt-3 shadow-lg shadow-brand/40">
                 <Play className="w-4 h-4 fill-current ml-0.5" />
               </div>
-              <span className="text-[10px] font-bold text-white">Practice</span>
+              <span className="text-[10px] font-bold text-slate-900 dark:text-white">Practice</span>
             </button>
 
             <button
@@ -610,9 +624,9 @@ export default function App() {
                   if (hub) hub.scrollIntoView({ behavior: 'smooth' });
                 }, 100);
               }}
-              className="flex flex-col items-center gap-1 py-1 px-3 text-slate-400 hover:text-white font-medium transition-all cursor-pointer"
+              className="flex flex-col items-center gap-1 py-1 px-3 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-medium transition-all cursor-pointer"
             >
-              <Sparkles className="w-5 h-5 text-indigo-400" />
+              <Sparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
               <span className="text-[10px]">AI Mentor</span>
             </button>
 
@@ -623,7 +637,7 @@ export default function App() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
-                appState === 'settings' ? 'text-brand font-black' : 'text-slate-400 font-medium'
+                appState === 'settings' ? 'text-brand font-black' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-medium'
               }`}
             >
               <SettingsIcon className="w-5 h-5" />

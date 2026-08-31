@@ -49,6 +49,22 @@
           "type": "object",
           "description": "The last AI analysis results cached for performance view."
         },
+        "customStudyNotes": {
+          "type": "string",
+          "description": "User notes and study materials."
+        },
+        "learningGoals": {
+          "type": "array",
+          "description": "Target topics and milestone goals set by the student."
+        },
+        "aiMentorPlan": {
+          "type": "object",
+          "description": "Adaptive study schedule created by the AI mentor."
+        },
+        "chatHistory": {
+          "type": "array",
+          "description": "Persisted AI conversation history."
+        },
         "updatedAt": {
           "type": "string",
           "format": "date-time",
@@ -90,6 +106,10 @@
         "questions": {
           "type": "array",
           "description": "The questions loaded during the active test session."
+        },
+        "aiAnalysis": {
+          "type": "object",
+          "description": "Post-test AI diagnosis and actionable tips."
         }
       },
       "required": ["date", "score", "total", "timeSpent", "subject"]
@@ -130,9 +150,24 @@
         }
       },
       "required": ["guestId", "onboarded"]
+    },
+    "HealthCheck": {
+      "title": "HealthCheck",
+      "description": "Lightweight document structure used for verifying connection status.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Status string."
+        }
+      }
     }
   },
   "firestore": {
+    "test/{testId}": {
+      "schema": "HealthCheck",
+      "description": "Health and connection verification ping document."
+    },
     "users/{userId}": {
       "schema": "UserProfile",
       "description": "Root collection for user registration and aggregate analytics."

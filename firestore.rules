@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 1. Catch-all safety gate (Master deny)
+    // 1. Catch-all safety gate (Zero-Trust Master Deny)
     match /{document=**} {
       allow read, write: if false;
     }
@@ -25,44 +25,106 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // Entity validation helper to prevent update gaps / shadow attributes
+    // Entity validation helper to prevent update gaps, shadow attributes, or malicious payload injection
     function isValidUserProfile(data) {
-      return data.get('name', '') is string 
-        && data.get('name', '').size() <= 100
-        && data.get('email', '') is string 
-        && data.get('email', '').size() <= 150
-        && data.get('onboarded', false) is bool
-        && (data.get('exam', null) == null || (data.get('exam', null) is string && data.get('exam', '').size() <= 100))
-        && (data.get('language', null) == null || (data.get('language', null) is string && data.get('language', '').size() <= 50))
-        && (data.get('customExamDetails', null) == null || (data.get('customExamDetails', null) is string && data.get('customExamDetails', '').size() <= 1000));
+      return (!('name' in data) || (data.name is string && data.name.size() <= 100))
+        && (!('email' in data) || (data.email is string && data.email.size() <= 150))
+        && (!('onboarded' in data) || (data.onboarded is bool))
+        && (!('exam' in data) || data.exam == null || (data.exam is string && data.exam.size() <= 100))
+        && (!('language' in data) || data.language == null || (data.language is string && data.language.size() <= 50))
+        && (!('customExamDetails' in data) || data.customExamDetails == null || (data.customExamDetails is string && data.customExamDetails.size() <= 2000))
+        && (!('streak' in data) || (data.streak is number && data.streak >= 0))
+        && (!('strongTopics' in data) || (data.strongTopics is list && data.strongTopics.size() <= 100))
+        && (!('weakTopics' in data) || (data.weakTopics is list && data.weakTopics.size() <= 100))
+        && (!('knowledgeProfile' in data) || data.knowledgeProfile is map)
+        && (!('lastAiAnalysis' in data) || data.lastAiAnalysis == null || data.lastAiAnalysis is map)
+        && (!('customStudyNotes' in data) || data.customStudyNotes == null || (data.customStudyNotes is string && data.customStudyNotes.size() <= 100000))
+        && (!('learningGoals' in data) || data.learningGoals == null || (data.learningGoals is list && data.learningGoals.size() <= 100))
+        && (!('aiMentorPlan' in data) || data.aiMentorPlan == null || data.aiMentorPlan is map)
+        && (!('chatHistory' in data) || data.chatHistory == null || (data.chatHistory is list && data.chatHistory.size() <= 500))
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100));
     }
 
     // Test result verification helper
     function isValidTestResult(data) {
-      return data.get('date', '') is string
-        && data.get('score', 0) is number
-        && data.get('total', 0) is number
-        && data.get('timeSpent', 0) is number
-        && data.get('subject', '') is string;
+      return (data.date is string && data.date.size() <= 100)
+        && (data.score is number && data.score >= 0)
+        && (data.total is number && data.total >= 0)
+        && (data.timeSpent is number && data.timeSpent >= 0)
+        && (data.subject is string && data.subject.size() <= 150)
+        && (!('topicPerformance' in data) || data.topicPerformance is map)
+        && (!('questions' in data) || (data.questions is list && data.questions.size() <= 200))
+        && (!('aiAnalysis' in data) || data.aiAnalysis == null || data.aiAnalysis is map);
     }
 
-    // Users collection match block
+    // Guest activity verification helper
+    function isValidGuestActivity(data) {
+      return (data.guestId is string && data.guestId.size() <= 128 && data.guestId.matches('^[a-zA-Z0-9_\\-]+$'))
+        && (data.onboarded is bool)
+        && (!('name' in data) || (data.name is string && data.name.size() <= 100))
+        && (!('exam' in data) || (data.exam is string && data.exam.size() <= 100))
+        && (!('language' in data) || (data.language is string && data.language.size() <= 50))
+        && (!('performance' in data) || data.performance is map)
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 100));
+    }
+
+    // Health / Connection test document
+    match /test/{testId} {
+      allow get: if isValidId(testId);
+      allow list, write: if false;
+    }
+
+    // Users collection match block (Strict owner-only isolation)
     match /users/{userId} {
-      allow get, create, update, delete: if isOwner(userId);
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // Zero-trust: prevent user listing / scraping
+      
+      allow create: if isOwner(userId) 
+        && isValidId(userId)
+        && isValidUserProfile(incoming());
+
+      allow update: if isOwner(userId)
+        && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'email', 'exam', 'language', 'customExamDetails', 'onboarded', 
+            'streak', 'strongTopics', 'weakTopics', 'knowledgeProfile', 
+            'lastAiAnalysis', 'customStudyNotes', 'learningGoals', 'aiMentorPlan', 
+            'chatHistory', 'updatedAt'
+          ])
+        );
+
+      allow delete: if isOwner(userId) && isValidId(userId);
 
       // Subcollection for isolated test results
       match /tests/{testId} {
-        allow get, list, create, update, delete: if isOwner(userId);
+        allow get, list: if isOwner(userId) && isValidId(userId);
+        
+        allow create: if isOwner(userId) 
+          && isValidId(userId)
+          && isValidId(testId)
+          && isValidTestResult(incoming());
+
+        allow update: if isOwner(userId)
+          && isValidId(userId)
+          && isValidId(testId)
+          && isValidTestResult(incoming());
+
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(testId);
       }
     }
 
-    // Guests collection match block (unauthenticated guest analytics support)
+    // Guests collection match block (Strict single document access, no bulk listing or deletions)
     match /guests/{guestId} {
-      allow get: if true;
-      allow create, update: if isValidId(guestId);
+      allow get: if isValidId(guestId);
+      allow list: if false;
+      allow create: if isValidId(guestId) && isValidGuestActivity(incoming());
+      allow update: if isValidId(guestId) && isValidGuestActivity(incoming());
+      allow delete: if false;
     }
   }
 }
