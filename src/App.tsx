@@ -5,7 +5,7 @@ import Dashboard from './components/Dashboard';
 import TestRunner from './components/TestRunner';
 import ResultView from './components/ResultView';
 import DrillSetupModal from './components/DrillSetupModal';
-import AccountModal from './components/AccountModal';
+import SettingsView from './components/SettingsView';
 import PWAInstallModal from './components/PWAInstallModal';
 import SidebarDrawer from './components/SidebarDrawer';
 import { usePersistence } from './hooks/usePersistence';
@@ -22,7 +22,7 @@ import {
   triggerHaptic 
 } from './services/nativeService';
 
-type AppState = 'landing' | 'onboarding' | 'dashboard' | 'testing' | 'results';
+type AppState = 'landing' | 'onboarding' | 'dashboard' | 'testing' | 'results' | 'settings';
 
 export default function App() {
   const isOnline = useOnlineStatus();
@@ -130,7 +130,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDrillSetupOpen, setIsDrillSetupOpen] = useState(false);
   const [drillInitialTopic, setDrillInitialTopic] = useState('');
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // PWA Prompting States & Event Handlers
@@ -502,14 +501,18 @@ export default function App() {
           initialTopic={drillInitialTopic}
         />
 
-        <AccountModal 
-          isOpen={isAccountModalOpen} 
-          onClose={() => setIsAccountModalOpen(false)} 
-          profile={profile} 
-          onUpdate={updateProfile}
-          firebaseUser={firebaseUser}
-          onLoginWithGoogle={handleLoginWithGoogle}
-        />
+        {appState === 'settings' && (
+          <SettingsView
+            profile={profile}
+            onUpdate={updateProfile}
+            firebaseUser={firebaseUser}
+            onLoginWithGoogle={handleLoginWithGoogle}
+            onBack={() => setAppState('dashboard')}
+            onClearTestHistory={clearTestHistory}
+            onClearChatHistory={clearChatHistory}
+            onLogout={handleLogout}
+          />
+        )}
 
         {appState === 'testing' && (
           <TestRunner 
@@ -555,7 +558,7 @@ export default function App() {
               onClose={() => setIsSidebarOpen(false)}
               userName={profile.name}
               onNavigate={(state) => setAppState(state)}
-              onOpenSettings={() => setIsAccountModalOpen(true)}
+              onOpenSettings={() => setAppState('settings')}
               onInstallApp={() => setIsPWAInstallModalOpen(true)}
               onLogout={handleLogout}
               showInstallButton={!isPWAInstalled}
@@ -616,9 +619,12 @@ export default function App() {
             <button
               onClick={() => {
                 triggerHaptic('light');
-                setIsAccountModalOpen(true);
+                setAppState('settings');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex flex-col items-center gap-1 py-1 px-3 text-slate-400 hover:text-white font-medium transition-all cursor-pointer"
+              className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+                appState === 'settings' ? 'text-brand font-black' : 'text-slate-400 font-medium'
+              }`}
             >
               <SettingsIcon className="w-5 h-5" />
               <span className="text-[10px]">Settings</span>
