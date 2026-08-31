@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ExamSelector from './components/ExamSelector';
 import Dashboard from './components/Dashboard';
@@ -436,19 +435,6 @@ export default function App() {
           <WifiOff className="w-4 h-4 shrink-0" />
           <span>Offline Mode Active: Practice tests & saved history work 100% offline!</span>
         </div>
-      )}
-
-      {appState !== 'onboarding' && appState !== 'dashboard' && (
-        <Navbar 
-          userName={profile.name} 
-          onProfileClick={() => setAppState('dashboard')} 
-          onAccountClick={() => setIsAccountModalOpen(true)}
-          onLogout={handleLogout}
-          firebaseUser={firebaseUser}
-          onLoginWithGoogle={handleLoginWithGoogle}
-          showInstallButton={appState === 'landing'}
-          onInstallClick={() => setIsPWAInstallModalOpen(true)}
-        />
       )}
 
       <main className="flex-1">
