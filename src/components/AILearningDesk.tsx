@@ -373,30 +373,32 @@ export default function AILearningDesk({
                 </div>
               )}
 
-              {/* Chat Input Bar - Guaranteed Send Button Visibility */}
+              {/* Chat Input Bar - Embedded rock-solid send button inside input container */}
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleSendChat();
                 }}
-                className="flex items-center gap-2 pt-2 border-t border-white/5 w-full"
+                className="relative flex items-center w-full pt-2 border-t border-white/5"
               >
-                <input
-                  type="text"
-                  className="flex-1 min-w-0 bg-slate-900 border border-slate-800 focus:border-brand text-white px-3.5 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-brand"
-                  placeholder={isOnline ? "Ask question or topic..." : "Connect internet to chat..."}
-                  value={chatIn}
-                  onChange={(e) => setChatIn(e.target.value)}
-                  disabled={isChatting || !isOnline}
-                />
-                <button
-                  type="submit"
-                  disabled={isChatting || !isOnline || !chatIn.trim()}
-                  className="w-10 h-10 shrink-0 bg-brand hover:bg-brand-light text-white rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-all disabled:opacity-40 cursor-pointer"
-                  title="Send"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
+                <div className="relative w-full flex items-center">
+                  <input
+                    type="text"
+                    className="w-full bg-slate-900 border border-slate-800 focus:border-brand text-white pl-4 pr-12 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-brand placeholder-slate-500"
+                    placeholder={isOnline ? "Ask question or topic..." : "Connect internet to chat..."}
+                    value={chatIn}
+                    onChange={(e) => setChatIn(e.target.value)}
+                    disabled={isChatting || !isOnline}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isChatting || !isOnline || !chatIn.trim()}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-brand hover:bg-brand-light text-white rounded-lg flex items-center justify-center shadow-sm active:scale-95 transition-all disabled:opacity-30 cursor-pointer"
+                    title="Send"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </form>
             </motion.div>
           )}

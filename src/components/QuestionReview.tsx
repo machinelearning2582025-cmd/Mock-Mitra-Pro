@@ -170,28 +170,30 @@ Provide a very short, crisp, precise, and direct clarification. STRICTLY keep th
         )}
       </div>
 
-      <div className="flex items-center gap-2 border-t border-white/5 pt-3">
-        <input 
-          type="text"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSend();
-            }
-          }}
-          disabled={isTyping}
-          placeholder="Doubt puchiye (e.g. why is this formula used?)..."
-          className="flex-1 bg-slate-900 border border-white/10 focus:border-brand text-white placeholder-slate-500 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand/30 disabled:opacity-50 font-medium"
-        />
-        <button
-          type="button"
-          onClick={() => handleSend()}
-          disabled={isTyping || !inputText.trim()}
-          className="bg-brand text-white hover:bg-brand-light p-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 hover:shadow-lg hover:shadow-brand/25 cursor-pointer shrink-0"
-        >
-          <Send className="w-4 h-4" />
-        </button>
+      <div className="relative flex items-center w-full border-t border-white/5 pt-3">
+        <div className="relative w-full flex items-center">
+          <input 
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSend();
+              }
+            }}
+            disabled={isTyping}
+            placeholder="Doubt puchiye (e.g. why is this formula used?)..."
+            className="w-full bg-slate-900 border border-white/10 focus:border-brand text-white placeholder-slate-500 text-xs sm:text-sm pl-4 pr-12 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-brand/30 disabled:opacity-50 font-medium"
+          />
+          <button
+            type="button"
+            onClick={() => handleSend()}
+            disabled={isTyping || !inputText.trim()}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-brand text-white hover:bg-brand-light rounded-lg flex items-center justify-center text-xs font-bold transition-all disabled:opacity-30 cursor-pointer shadow-sm"
+          >
+            <Send className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );
