@@ -105,8 +105,8 @@ export default function DrillSetupModal({
             <div className="space-y-4 py-3 overflow-y-auto custom-scrollbar flex-1 pr-1">
               
               {/* Topic Input */}
-              <div className="space-y-1.5 p-3 bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-white/5 rounded-xl">
-                <label className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black uppercase text-brand dark:text-brand-light tracking-wider flex items-center gap-1.5 pl-0.5">
                   <Target className="w-3.5 h-3.5 text-brand" /> Topic / Chapter / Concept
                 </label>
                 <input 
@@ -114,7 +114,7 @@ export default function DrillSetupModal({
                   value={customTopic}
                   onChange={(e) => setCustomTopic(e.target.value)}
                   placeholder="E.g., Trigonometry, Biology Plant Cell, History..."
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0a0d14] border border-slate-200 dark:border-white/10 rounded-lg focus:border-brand outline-none transition-all text-xs font-semibold text-slate-900 dark:text-white placeholder:text-slate-400"
+                  className="w-full px-4 py-3 bg-brand/[0.03] dark:bg-brand/[0.07] border-2 border-brand/40 dark:border-brand/50 focus:border-brand dark:focus:border-brand rounded-xl focus:ring-4 focus:ring-brand/10 outline-none transition-all text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-xs"
                 />
               </div>
 
