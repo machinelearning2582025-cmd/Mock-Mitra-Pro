@@ -243,7 +243,7 @@ export default function App() {
       
       const isExplicitTopic = !!(specificTopics && specificTopics.length > 0) || !!(setup?.customTopic && setup.customTopic.trim() !== '');
       
-      const count = setup?.questionCount && [5, 8, 10].includes(setup.questionCount) ? setup.questionCount : 10;
+      const count = setup?.questionCount && [3, 5, 8, 10].includes(setup.questionCount) ? setup.questionCount : 5;
 
       // If online, attempt AI question generation; otherwise use local offline question bank
       let generatedQuestions: Question[] = [];
@@ -293,7 +293,7 @@ export default function App() {
       setAiAnalysis(null);
     } catch (error) {
       console.error("Failed to start test:", error);
-      const fallbackCount = setup?.questionCount || 10;
+      const fallbackCount = setup?.questionCount || 5;
       setCurrentTestQuestions(QUESTIONS.slice(0, fallbackCount));
       setAppState('testing');
     } finally {

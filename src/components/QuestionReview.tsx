@@ -152,7 +152,7 @@ Provide a very short, crisp, precise, and direct clarification. STRICTLY keep th
             </div>
             <div className={`p-3 rounded-2xl leading-relaxed ${m.role === 'user' ? 'bg-indigo-50 text-indigo-900 border border-indigo-200 dark:bg-indigo-600/20 dark:text-white dark:border-indigo-500/20 rounded-tr-none' : 'bg-white dark:bg-[#151926] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10 rounded-tl-none shadow-sm'}`}>
               <div className="markdown-body select-text">
-                <MarkdownRenderer text={m.text} />
+                <MarkdownRenderer text={m.text} isUser={m.role === 'user'} />
               </div>
             </div>
           </div>

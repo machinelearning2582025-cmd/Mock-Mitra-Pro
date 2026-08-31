@@ -164,7 +164,7 @@ export default function AILearningDesk({
   ];
 
   return (
-    <div id="ai-personalised-hub" className="bento-card border-brand/20 bg-[#0d101a] my-4 p-4 sm:p-6 shadow-premium">
+    <div id="ai-personalised-hub" className="bento-card border border-slate-200/80 dark:border-brand/20 bg-white dark:bg-[#0d101a] my-4 p-4 sm:p-6 shadow-sm dark:shadow-premium">
       
       {/* Offline Alert */}
       {!isOnline && (
@@ -334,12 +334,12 @@ export default function AILearningDesk({
                       </div>
                     )}
                     
-                    <div className={`p-3 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[85%] ${
+                    <div className={`p-3 sm:p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[85%] ${
                       msg.role === 'user' 
                         ? 'bg-brand text-white rounded-tr-none shadow-sm' 
-                        : 'bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10 rounded-tl-none'
+                        : 'bg-slate-100 dark:bg-[#121624] text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 rounded-tl-none'
                     }`}>
-                      <MarkdownRenderer text={msg.text} />
+                      <MarkdownRenderer text={msg.text} isUser={msg.role === 'user'} />
                     </div>
 
                     {msg.role === 'user' && (

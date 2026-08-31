@@ -2,6 +2,8 @@ import React from 'react';
 
 interface MarkdownRendererProps {
   text: string;
+  isUser?: boolean;
+  className?: string;
 }
 
 // Pre-process raw LaTeX formulas, braces and code containers to beautiful Unicode symbols
@@ -67,7 +69,6 @@ const preprocessMathText = (input: string): string => {
   ];
   
   translations.forEach(({ regex, replacement }) => {
-    // Run multiple passes for nested structures (e.g. nested fractions)
     result = result.replace(regex, replacement);
     result = result.replace(regex, replacement);
   });
@@ -78,7 +79,7 @@ const preprocessMathText = (input: string): string => {
   return result;
 };
 
-export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
+export default function MarkdownRenderer({ text, isUser = false, className = '' }: MarkdownRendererProps) {
   if (!text) return null;
 
   // Clean raw math expressions and symbols to look pristine
@@ -87,7 +88,6 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
 
   // Inline styling parser: parses **, *, ` into colored/styled React elements
   const parseInlineStyles = (content: string): React.ReactNode[] => {
-    // Regex to tokenise by **, * or `
     const tokenRegex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
     const tokens = content.split(tokenRegex);
 
@@ -95,7 +95,10 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
       // Bold **text**
       if (token.startsWith('**') && token.endsWith('**')) {
         return (
-          <strong key={idx} className="font-extrabold text-white">
+          <strong 
+            key={idx} 
+            className={`font-bold ${isUser ? 'text-white' : 'text-slate-950 dark:text-white'}`}
+          >
             {token.slice(2, -2)}
           </strong>
         );
@@ -103,7 +106,10 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
       // Italic *text*
       if (token.startsWith('*') && token.endsWith('*')) {
         return (
-          <em key={idx} className="italic text-slate-300">
+          <em 
+            key={idx} 
+            className={`italic ${isUser ? 'text-white/90' : 'text-slate-700 dark:text-slate-300'}`}
+          >
             {token.slice(1, -1)}
           </em>
         );
@@ -111,7 +117,14 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
       // Monospace `code`
       if (token.startsWith('`') && token.endsWith('`')) {
         return (
-          <code key={idx} className="px-1.5 py-0.5 mx-0.5 font-mono text-[10px] sm:text-xs text-brand-light bg-brand/10 border border-brand/20 rounded-md">
+          <code 
+            key={idx} 
+            className={`px-1.5 py-0.5 mx-0.5 font-mono text-[10px] sm:text-xs rounded-md ${
+              isUser 
+                ? 'bg-white/20 text-white border border-white/30' 
+                : 'text-brand dark:text-brand-light bg-brand/10 dark:bg-brand/20 border border-brand/20 dark:border-brand/30'
+            }`}
+          >
             {token.slice(1, -1)}
           </code>
         );
@@ -120,12 +133,16 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
     });
   };
 
-  return (
-    <div className="space-y-2 font-sans text-slate-300 leading-relaxed text-[11px] sm:text-xs">
-      {lines.map((line, lineIdx) => {
-        let trimmed = line.trim();
+  const containerClasses = isUser
+    ? `space-y-1.5 font-sans text-white leading-relaxed text-[11px] sm:text-xs ${className}`
+    : `space-y-2 font-sans text-slate-800 dark:text-slate-200 leading-relaxed text-[11px] sm:text-xs ${className}`;
 
-        // 1. Ignore completely empty lines (or render as spacer)
+  return (
+    <div className={containerClasses}>
+      {lines.map((line, lineIdx) => {
+        const trimmed = line.trim();
+
+        // 1. Ignore completely empty lines (render as small spacer)
         if (!trimmed) {
           return <div key={lineIdx} className="h-1.5" />;
         }
@@ -133,28 +150,48 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
         // 2. Headings: #, ##, ###, ####
         if (trimmed.startsWith('#### ')) {
           return (
-            <h5 key={lineIdx} className="text-xs sm:text-sm font-black text-white mt-3 mb-1.5 tracking-tight uppercase">
+            <h5 
+              key={lineIdx} 
+              className={`text-xs sm:text-sm font-black mt-3 mb-1.5 tracking-tight uppercase ${
+                isUser ? 'text-white' : 'text-slate-900 dark:text-white'
+              }`}
+            >
               {parseInlineStyles(trimmed.slice(5))}
             </h5>
           );
         }
         if (trimmed.startsWith('### ')) {
           return (
-            <h4 key={lineIdx} className="text-sm sm:text-base font-black text-brand-light mt-4 mb-2 tracking-tight">
+            <h4 
+              key={lineIdx} 
+              className={`text-sm sm:text-base font-black mt-3.5 mb-2 tracking-tight ${
+                isUser ? 'text-white' : 'text-brand dark:text-brand-light'
+              }`}
+            >
               {parseInlineStyles(trimmed.slice(4))}
             </h4>
           );
         }
         if (trimmed.startsWith('## ')) {
           return (
-            <h3 key={lineIdx} className="text-base sm:text-lg font-black text-white mt-5 mb-2.5 tracking-tight">
+            <h3 
+              key={lineIdx} 
+              className={`text-base sm:text-lg font-black mt-4 mb-2 tracking-tight ${
+                isUser ? 'text-white' : 'text-brand dark:text-brand-light'
+              }`}
+            >
               {parseInlineStyles(trimmed.slice(3))}
             </h3>
           );
         }
         if (trimmed.startsWith('# ')) {
           return (
-            <h2 key={lineIdx} className="text-lg sm:text-xl font-black text-white mt-6 mb-3 tracking-tight">
+            <h2 
+              key={lineIdx} 
+              className={`text-lg sm:text-xl font-black mt-5 mb-2.5 tracking-tight ${
+                isUser ? 'text-white' : 'text-slate-900 dark:text-white'
+              }`}
+            >
               {parseInlineStyles(trimmed.slice(2))}
             </h2>
           );
@@ -164,9 +201,9 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
         const bulletMatch = trimmed.match(/^([-*•])\s+(.*)/);
         if (bulletMatch) {
           return (
-            <div key={lineIdx} className="flex items-start gap-2 pl-1.5 my-1">
-              <span className="text-brand shrink-0 text-xs mt-0.5">•</span>
-              <p className="flex-1 text-[11px] sm:text-xs text-slate-300 leading-normal">
+            <div key={lineIdx} className="flex items-start gap-2 pl-1 my-1">
+              <span className={`shrink-0 text-xs mt-0.5 ${isUser ? 'text-white/80' : 'text-brand dark:text-brand-light font-bold'}`}>•</span>
+              <p className={`flex-1 text-[11px] sm:text-xs leading-normal ${isUser ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}>
                 {parseInlineStyles(bulletMatch[2])}
               </p>
             </div>
@@ -177,11 +214,13 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
         const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
         if (numberedMatch) {
           return (
-            <div key={lineIdx} className="flex items-start gap-2 pl-1 my-1">
-              <span className="text-brand-light font-black text-[10px] sm:text-xs shrink-0 mt-0.5">
+            <div key={lineIdx} className="flex items-start gap-2 pl-0.5 my-1">
+              <span className={`font-black text-[10px] sm:text-xs shrink-0 mt-0.5 ${
+                isUser ? 'text-white' : 'text-brand dark:text-brand-light'
+              }`}>
                 {numberedMatch[1]}.
               </span>
-              <p className="flex-1 text-[11px] sm:text-xs text-slate-300 leading-normal">
+              <p className={`flex-1 text-[11px] sm:text-xs leading-normal ${isUser ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}>
                 {parseInlineStyles(numberedMatch[2])}
               </p>
             </div>
@@ -191,7 +230,14 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
         // 5. Blockquote / highlight lines starting with >
         if (trimmed.startsWith('> ')) {
           return (
-            <blockquote key={lineIdx} className="border-l-2 border-brand/50 pl-3 py-1 my-2 bg-brand/5 rounded-r-xl italic text-slate-400 font-sans text-[11px] sm:text-xs">
+            <blockquote 
+              key={lineIdx} 
+              className={`border-l-2 pl-3 py-1 my-2 rounded-r-xl italic font-sans text-[11px] sm:text-xs ${
+                isUser 
+                  ? 'border-white/50 bg-white/10 text-white/90' 
+                  : 'border-brand/50 bg-brand/5 dark:bg-brand/10 text-slate-700 dark:text-slate-300'
+              }`}
+            >
               {parseInlineStyles(trimmed.slice(2))}
             </blockquote>
           );
@@ -199,7 +245,10 @@ export default function MarkdownRenderer({ text }: MarkdownRendererProps) {
 
         // 6. Normal text paragraph
         return (
-          <p key={lineIdx} className="text-[11px] sm:text-xs leading-relaxed text-slate-300">
+          <p 
+            key={lineIdx} 
+            className={`text-[11px] sm:text-xs leading-relaxed ${isUser ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}
+          >
             {parseInlineStyles(line)}
           </p>
         );

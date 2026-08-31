@@ -86,7 +86,7 @@ export interface DrillSetup {
   customPrompt?: string;
   files?: DrillFile[];
   difficulty?: 'Easy' | 'Medium' | 'Hard';
-  questionCount?: 5 | 8 | 10 | number;
+  questionCount?: 3 | 5 | 8 | 10 | number;
   selectedModel?: 'gemini-3.5-flash' | 'gemini-3.1-flash-lite';
   videoInfo?: {
     title: string;
