@@ -145,6 +145,36 @@ export function checkReminderDue(settings?: NotificationSettings): boolean {
 }
 
 /**
+ * Detect if running inside an Android WebView, TWA, or PWA Builder APK wrapper
+ */
+export function isWrapperOrWebViewApp(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const ua = navigator.userAgent || '';
+  const isAndroid = /android/i.test(ua);
+
+  // 1. Android WebView user agent signatures
+  const isWebView = isAndroid && (/wv/i.test(ua) || /Version\/[\d.]+/i.test(ua) || /Android.*Version\/[0-9.]+/i.test(ua));
+
+  // 2. Android app referrer (TWA / PWA Builder / Trusted Web Activity launch)
+  const isAndroidAppReferrer = typeof document !== 'undefined' && document.referrer.startsWith('android-app://');
+
+  // 3. Custom wrapper keywords in UA
+  const isCustomWrapper = /PWABuilder|PWA-Builder|Bubblewrap|TWA|AndroidApp/i.test(ua);
+
+  // 4. URL query param or localStorage test override (e.g. ?source=apk or ?app=wrapper or ?wrapper=true)
+  const hasWrapperParam = typeof window !== 'undefined' && (
+    window.location.search.includes('source=apk') ||
+    window.location.search.includes('app=wrapper') ||
+    window.location.search.includes('wrapper=true') ||
+    window.location.search.includes('is_apk=true') ||
+    localStorage.getItem('is_wrapper_app') === 'true'
+  );
+
+  return Boolean(isWebView || isAndroidAppReferrer || isCustomWrapper || hasWrapperParam);
+}
+
+/**
  * React Hook for Online / Offline Status Detection
  */
 export function useOnlineStatus() {
