@@ -8,6 +8,7 @@ import DrillSetupModal from './components/DrillSetupModal';
 import SettingsView from './components/SettingsView';
 import PWAInstallModal from './components/PWAInstallModal';
 import SidebarDrawer from './components/SidebarDrawer';
+import TestGeneratingLoader from './components/TestGeneratingLoader';
 import { usePersistence } from './hooks/usePersistence';
 import { useTheme } from './hooks/useTheme';
 import { QUESTIONS } from './data/questions';
@@ -129,6 +130,8 @@ export default function App() {
   const [lastResults, setLastResults] = useState<any>(null);
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingTest, setIsGeneratingTest] = useState(false);
+  const [generatingTestMeta, setGeneratingTestMeta] = useState<{ topic?: string; count?: number; exam?: string }>({});
   const [isDrillSetupOpen, setIsDrillSetupOpen] = useState(false);
   const [drillInitialTopic, setDrillInitialTopic] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -212,6 +215,15 @@ export default function App() {
 
   const startNewTest = useCallback(async (setup?: DrillSetup, specificTopics?: Topic[]) => {
     setIsDrillSetupOpen(false);
+    const chosenCount = setup?.questionCount && [3, 5, 8, 10].includes(setup.questionCount) ? setup.questionCount : 5;
+    const chosenTopic = setup?.customTopic || (specificTopics && specificTopics.length > 0 ? specificTopics[0] : undefined);
+    
+    setGeneratingTestMeta({
+      topic: chosenTopic,
+      count: chosenCount,
+      exam: profile.exam
+    });
+    setIsGeneratingTest(true);
     setIsLoading(true);
     triggerHaptic('medium');
 
@@ -298,6 +310,7 @@ export default function App() {
       setAppState('testing');
     } finally {
       setIsLoading(false);
+      setIsGeneratingTest(false);
     }
   }, [profile, isOnline]);
 
@@ -455,21 +468,27 @@ export default function App() {
 
       <main className="flex-1">
         <AnimatePresence mode="wait">
-          {isLoading && (
+          {isGeneratingTest ? (
+            <TestGeneratingLoader 
+              topic={generatingTestMeta.topic} 
+              count={generatingTestMeta.count} 
+              exam={generatingTestMeta.exam} 
+            />
+          ) : isLoading ? (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-[#080a10]/85 backdrop-blur-sm"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-[#080a10]/85 backdrop-blur-sm p-4"
               id="loading-overlay"
             >
-              <div className="text-center p-8 bento-card border-slate-200 dark:border-brand/40 bg-white dark:bg-[#0d101a] shadow-2xl">
-                <Loader2 className="w-12 h-12 text-brand animate-spin mx-auto mb-4" />
-                <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-white">Preparing Your Practice Test...</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Curating exam questions & topics for you.</p>
+              <div className="text-center p-6 bento-card border-slate-200 dark:border-brand/40 bg-white dark:bg-[#0d101a] shadow-2xl max-w-sm w-full">
+                <Loader2 className="w-10 h-10 text-brand animate-spin mx-auto mb-3" />
+                <h3 className="text-lg font-black mb-1.5 text-slate-900 dark:text-white">Please Wait...</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Synchronizing your progress.</p>
               </div>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
 
         {appState === 'landing' && (

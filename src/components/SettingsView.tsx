@@ -3,7 +3,7 @@ import {
   User, Target, Globe, Save, CheckCircle2, 
   Sparkles, Loader2, Bell, Clock, Volume2, 
   ArrowLeft, Shield, Trash2, LogOut,
-  Moon, Sun, Monitor
+  Moon, Sun, Monitor, Download
 } from 'lucide-react';
 import { UserProfile, NotificationSettings } from '../types';
 import { useTheme } from '../hooks/useTheme';
@@ -11,7 +11,8 @@ import {
   requestNotificationPermission, 
   getNotificationPermission, 
   triggerTestNotification, 
-  triggerHaptic 
+  triggerHaptic,
+  isWrapperOrWebViewApp
 } from '../services/nativeService';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -68,9 +69,11 @@ export default function SettingsView({
   const [linkError, setLinkError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isWrapper, setIsWrapper] = useState(false);
 
   useEffect(() => {
     setNotifPermission(getNotificationPermission());
+    setIsWrapper(isWrapperOrWebViewApp());
   }, []);
 
   const handleSave = async () => {
@@ -396,6 +399,30 @@ export default function SettingsView({
                   <LogOut className="w-2.5 h-2.5" /> Logout
                 </button>
               )}
+            </div>
+          ) : isWrapper ? (
+            <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-white/5 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Account & Cloud Sync</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">For Google login & cross-device cloud sync:</div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    window.open('https://mock-mitra-pro.vercel.app', '_blank');
+                  } catch {
+                    window.location.href = 'https://mock-mitra-pro.vercel.app';
+                  }
+                }}
+                className="w-full py-2 px-3 bg-brand hover:bg-brand-light text-white font-bold text-xs rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-98"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download from website for best experience</span>
+              </button>
             </div>
           ) : (
             <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-white/5">
